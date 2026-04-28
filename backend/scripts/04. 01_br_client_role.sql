@@ -1,3 +1,5 @@
+-- (BR-01) Une réservation doit être associée à un utilisateur ayant le rôle de client.
+
 CREATE OR REPLACE FUNCTION fn_check_client_role()
     RETURNS TRIGGER AS
 $$
