@@ -23,14 +23,14 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 DROP TRIGGER IF EXISTS trg_validate_reservation_capacity ON reservations;
-    CREATE TRIGGER trg_validate_reservation_capacity
+CREATE TRIGGER trg_validate_reservation_capacity
     AFTER INSERT OR UPDATE OF number_of_guests, status
     ON reservations
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_reservation_capacity();
 
 DROP TRIGGER IF EXISTS trg_validate_reservation_capacity ON reservation_tables;
-    CREATE CONSTRAINT TRIGGER trg_validate_reservation_tables_capacity
+CREATE CONSTRAINT TRIGGER trg_validate_reservation_tables_capacity
     AFTER DELETE
     ON reservation_tables
     DEFERRABLE INITIALLY DEFERRED
@@ -38,7 +38,7 @@ FOR EACH ROW
 EXECUTE FUNCTION fn_check_reservation_capacity();
 
 DROP TRIGGER IF EXISTS trg_validate_reservation_capacity ON tables;
-    CREATE TRIGGER trg_validate_table_capacity
+CREATE TRIGGER trg_validate_table_capacity
     AFTER UPDATE OF capacity OR DELETE
     ON tables
     FOR EACH ROW
