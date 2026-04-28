@@ -4,12 +4,13 @@ $$
 DECLARE
     cl_role role_type;
 BEGIN
-    SELECT role INTO cl_role
-    FROM users
-    WHERE id = NEW.client;
-
-    IF cl_role != 'client' OR cl_role IS NULL THEN
-        RAISE EXCEPTION 'Seul un client peut effectuer une réservation!';
+    IF NOT EXISTS(
+        SELECT 1
+        FROM users
+        WHERE id = NEW.client
+            AND role = 'client')
+        THEN
+            RAISE EXCEPTION 'Seul un client peut effectuer une réservation!';
     END IF;
 
     RETURN NEW;
