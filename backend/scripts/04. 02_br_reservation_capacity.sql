@@ -10,8 +10,8 @@ BEGIN
    IF EXISTS(
        SELECT r.id, r.number_of_guests, COALESCE(SUM(t.capacity), 0)
        FROM reservations r
-            LEFT JOIN reservation_tables rt ON rt.reservations = r.id
-            LEFT JOIN table t on t.id = rt."table"
+            LEFT JOIN reservation_tables rt ON rt.reservation = r.id
+            LEFT JOIN tables t on t.id = rt."table"
             WHERE r.status IN ('confirmed'::status_type, 'completed'::status_type)
             GROUP BY r.id, r.id, r.number_of_guests
             HAVING r.number_of_guests > COALESCE(SUM(t.capacity), 0)) THEN
