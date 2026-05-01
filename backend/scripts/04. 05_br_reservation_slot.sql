@@ -3,7 +3,7 @@
 -- Un créneau de réservation doit toujours correspondre à une heure exacte
 -- (sans minutes) augmentée d'un multiple de la durée du créneau de réservation.
 
-CREATE OR REPLACE FUNCTION check_reservation_valid_slot()
+CREATE OR REPLACE FUNCTION fn_check_reservation_valid_slot()
     RETURNS TRIGGER AS
 $$
 BEGIN
@@ -28,4 +28,4 @@ CREATE TRIGGER trg_check_reservation_valid_slot
     BEFORE INSERT OR UPDATE
     ON reservations
     FOR EACH ROW
-EXECUTE FUNCTION check_reservation_valid_slot();
+EXECUTE FUNCTION fn_check_reservation_valid_slot();
