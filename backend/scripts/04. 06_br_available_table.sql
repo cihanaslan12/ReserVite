@@ -12,7 +12,7 @@ BEGIN
             JOIN reservations r2 ON r2.id = rt2.reservation
             JOIN reservations r1 ON r1.id = NEW.reservation
         WHERE rt2."table" = NEW."table"
-            AND r2.id != NEW.id
+            AND rt2.reservation != NEW.reservation
             AND r2.datetime = r1.datetime
             AND r1.status IN ('confirmed', 'completed')
             AND r2.status IN ('confirmed', 'completed')
@@ -24,7 +24,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_check_table_available ON reservation_tables;
-CREATE TRIGGER trg_check_table_available
+CREATE CONSTRAINT TRIGGER trg_check_table_available
     AFTER INSERT OR UPDATE
     ON reservation_tables
     DEFERRABLE INITIALLY DEFERRED
