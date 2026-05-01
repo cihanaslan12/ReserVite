@@ -23,8 +23,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trg_check_table_available ON reservation_tables;
-CREATE CONSTRAINT TRIGGER trg_check_table_available
+DROP TRIGGER IF EXISTS trg_check_available_table ON reservation_tables;
+CREATE CONSTRAINT TRIGGER trg_check_available_table
     AFTER INSERT OR UPDATE
     ON reservation_tables
     DEFERRABLE INITIALLY DEFERRED
