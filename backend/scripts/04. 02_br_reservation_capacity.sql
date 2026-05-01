@@ -29,7 +29,7 @@ CREATE TRIGGER trg_validate_reservation_capacity
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_reservation_capacity();
 
-DROP TRIGGER IF EXISTS trg_validate_reservation_capacity ON reservation_tables;
+DROP TRIGGER IF EXISTS trg_validate_reservation_tables_capacity ON reservation_tables;
 CREATE CONSTRAINT TRIGGER trg_validate_reservation_tables_capacity
     AFTER DELETE
     ON reservation_tables
@@ -37,7 +37,7 @@ CREATE CONSTRAINT TRIGGER trg_validate_reservation_tables_capacity
 FOR EACH ROW
 EXECUTE FUNCTION fn_check_reservation_capacity();
 
-DROP TRIGGER IF EXISTS trg_validate_reservation_capacity ON tables;
+DROP TRIGGER IF EXISTS trg_validate_table_capacity ON tables;
 CREATE TRIGGER trg_validate_table_capacity
     AFTER UPDATE OF capacity OR DELETE
     ON tables
