@@ -55,3 +55,4 @@ CREATE TRIGGER trg_check_changing_reservation_status
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_changing_reservation_status();
 
+-- Aucune table ne peut être attribuée à une réservation en attente ou annulée (10)

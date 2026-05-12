@@ -30,3 +30,5 @@ CREATE CONSTRAINT TRIGGER trg_check_available_table
     DEFERRABLE INITIALLY DEFERRED
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_available_table();
+
+-- Aucune table ne peut être attribuée à une réservation en attente ou annulée (16)

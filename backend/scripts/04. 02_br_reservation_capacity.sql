@@ -13,7 +13,7 @@ BEGIN
             LEFT JOIN reservation_tables rt ON rt.reservation = r.id
             LEFT JOIN tables t on t.id = rt."table"
             WHERE r.status IN ('confirmed'::status_type, 'completed'::status_type)
-            GROUP BY r.id, r.id, r.number_of_guests
+            GROUP BY r.id, r.number_of_guests
             HAVING r.number_of_guests > COALESCE(SUM(t.capacity), 0)) THEN
        RAISE EXCEPTION 'Le nombre de convives dépasse la capacité totale.';
    END IF;
@@ -34,12 +34,14 @@ CREATE CONSTRAINT TRIGGER trg_validate_reservation_tables_capacity
     AFTER DELETE
     ON reservation_tables
     DEFERRABLE INITIALLY DEFERRED
-FOR EACH ROW
+    FOR EACH ROW
 EXECUTE FUNCTION fn_check_reservation_capacity();
 
-DROP TRIGGER IF EXISTS trg_validate_table_capacity ON tables;
-CREATE TRIGGER trg_validate_table_capacity
+DROP TRIGGER IF EXISTS trg_validate_tables_capacity ON tables;
+CREATE TRIGGER trg_validate_tables_capacity
     AFTER UPDATE OF capacity OR DELETE
     ON tables
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_reservation_capacity();
+
+-- Aucune table ne peut être attribuée à une réservation en attente ou annulée (2)

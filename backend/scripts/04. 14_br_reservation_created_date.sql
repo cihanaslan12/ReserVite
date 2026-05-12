@@ -19,3 +19,5 @@ CREATE TRIGGER trg_check_reservation_created_date
     ON reservations
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_reservation_created_date();
+
+-- Test failed: command should have raised an exception

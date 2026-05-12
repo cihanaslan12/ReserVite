@@ -30,3 +30,5 @@ CREATE TRIGGER trg_check_double_reservations
     ON reservations
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_double_reservations();
+
+-- Aucune table ne peut être attribuée à une réservation en attente ou annulée (4)

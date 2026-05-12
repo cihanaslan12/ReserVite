@@ -28,3 +28,6 @@ CREATE TRIGGER trg_check_valid_reservation_time
     ON reservations
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_valid_reservation_time();
+
+-- Aucune table ne peut être attribuée à une réservation en attente ou annulée (4)
+-- Le créneau de la réservation ne correspond pas au service du restaurant!
