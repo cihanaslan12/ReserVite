@@ -1,3 +1,4 @@
+rollback;
 set search_path to public;
 
 begin;
