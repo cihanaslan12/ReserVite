@@ -18,7 +18,7 @@ $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_check_no_table_reservations ON reservation_tables;
 CREATE OR REPLACE TRIGGER trg_check_no_table_reservations
-    BEFORE INSERT
+    AFTER INSERT
     ON reservation_tables
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_no_table_reservations();
