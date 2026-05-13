@@ -3,6 +3,21 @@
     <script-file value="$PROJECT_DIR$/backend/scripts/01_init.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/02_security.sql" />
     <script-file value="$PROJECT_DIR$/backend/scripts/03_tables_and_data.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 00_checks.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 01_br_client_role.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 02_br_reservation_capacity.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 03_br_table_restaurant.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 04_br_reservation_time.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 05_br_reservation_slot.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 06_br_available_table.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 07_br_services_overlap.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 08_br_valid_service_time.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 09_br_changing_reservation_status.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 10_br_min_1_manager.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 11_br_no_modification.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 12_br_no_table_reservations.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 13_br_double_reservations.sql" />
+    <script-file value="$PROJECT_DIR$/backend/scripts/04. 14_br_reservation_created_date.sql" />
     <script-mode>FILE</script-mode>
     <data-source id="6d275bb5-c69c-4f95-bc29-f6a29631655b" namespace="database/&quot;prbd-2526-a08&quot;" />
     <method v="2" />
