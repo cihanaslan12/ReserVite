@@ -3,14 +3,22 @@
     <script-file value="$PROJECT_DIR$/backend/tests/test_01_login.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_02_impersonation.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_03_reset_database.sql" />
+    <script-file value="$PROJECT_DIR$/backend/tests/test_04_constraints_check.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.00_br_email_unique.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.01_br_client_role.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.02_br_reservation_capacity.sql" />
+    <script-file value="$PROJECT_DIR$/backend/tests/test_04.03_br_table_restaurant.sql" />
+    <script-file value="$PROJECT_DIR$/backend/tests/test_04.04_br_reservation_time.sql" />
+    <script-file value="$PROJECT_DIR$/backend/tests/test_04.05_br_reservation_slot.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.06_br_available_table.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.07_br_services_opverlap.sql" />
+    <script-file value="$PROJECT_DIR$/backend/tests/test_04.08_br_valid_service_time.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.09_br_changing_reservation_status.sql" />
+    <script-file value="$PROJECT_DIR$/backend/tests/test_04.10_br_min_1_manager.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.11_br_no_modification.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.12_br_no_table_reservations.sql" />
+    <script-file value="$PROJECT_DIR$/backend/tests/test_04.13_br_check_double_reservations.sql" />
+    <script-file value="$PROJECT_DIR$/backend/tests/test_04.14_br_check_reservation_created_date.sql" />
     <script-mode>FILE</script-mode>
     <data-source id="6d275bb5-c69c-4f95-bc29-f6a29631655b" namespace="database/&quot;prbd-2526-a08&quot;" />
     <method v="2" />
