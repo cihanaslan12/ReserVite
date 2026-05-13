@@ -6,9 +6,10 @@ $$
 BEGIN
     IF EXISTS(
         SELECT 1
-        FROM reservations r
-        WHERE r.id = NEW.reservation
-            AND r.status IN ('pending', 'cancelled')
+        FROM reservation_tables
+        WHERE reservation IN (SELECT id
+                              FROM reservations
+                              WHERE status IN ('pending', 'cancelled'))
     ) THEN
         RAISE EXCEPTION 'Aucune table ne peut être attribuée à une réservation en attente ou annulée';
     END IF;
@@ -17,9 +18,18 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_check_no_table_reservations ON reservation_tables;
-CREATE OR REPLACE TRIGGER trg_check_no_table_reservations
+CREATE CONSTRAINT TRIGGER trg_check_no_table_reservations
     AFTER INSERT
     ON reservation_tables
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW
+EXECUTE FUNCTION fn_check_no_table_reservations();
+
+DROP TRIGGER IF EXISTS trg_check_no_table_reservations ON reservations;
+CREATE CONSTRAINT TRIGGER trg_check_no_table_reservations
+    AFTER UPDATE of status
+    ON reservations
+    DEFERRABLE INITIALLY DEFERRED
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_no_table_reservations();
 
