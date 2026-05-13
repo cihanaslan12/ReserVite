@@ -29,5 +29,3 @@ CREATE TRIGGER trg_check_reservation_valid_slot
     ON reservations
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_reservation_valid_slot();
-
--- Aucune table ne peut être attribuée à une réservation en attente ou annulée

@@ -18,5 +18,3 @@ CREATE TRIGGER trg_check_no_modification
     ON reservations
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_no_modification();
-
--- Aucune table ne peut être attribuée à une réservation en attente ou annulée (4)

@@ -32,5 +32,3 @@ CREATE CONSTRAINT TRIGGER trg_check_no_table_reservations
     DEFERRABLE INITIALLY DEFERRED
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_no_table_reservations();
-
--- Aucune table ne peut être attribuée à une réservation en attente ou annulée (5)

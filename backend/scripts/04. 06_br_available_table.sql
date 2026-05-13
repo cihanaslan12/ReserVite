@@ -31,4 +31,5 @@ CREATE CONSTRAINT TRIGGER trg_check_available_table
     FOR EACH ROW
 EXECUTE FUNCTION fn_check_available_table();
 
--- Aucune table ne peut être attribuée à une réservation en attente ou annulée (16)
+-- Test failed: command should have raised an exception (6)
+-- Le créneau de la réservation ne correspond pas au service du restaurant!
