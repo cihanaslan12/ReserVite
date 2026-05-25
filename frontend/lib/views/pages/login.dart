@@ -14,8 +14,8 @@ class Login extends ConsumerStatefulWidget {
 }
 
 class _LoginState extends ConsumerState<Login> {
-  final _pseudoController = ValidatingTextEditingController(
-    validator: User.validatePseudo,
+  final _emailController = ValidatingTextEditingController(
+    validator: User.validateEmail,
     initialValue: '',
   );
   final _passwordController = ValidatingTextEditingController(
@@ -26,12 +26,10 @@ class _LoginState extends ConsumerState<Login> {
 
   @override
   void initState() {
-    _pseudoController.onAfterValidated = () => setState(() {});
+    _emailController.onAfterValidated = () => setState(() {});
     _passwordController.onAfterValidated = () => setState(() {});
     super.initState();
   }
-
-  late final notifier = ref.read(securityProvider.notifier);
 
   @override
   Widget build(BuildContext context) {
@@ -106,8 +104,9 @@ class _LoginState extends ConsumerState<Login> {
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
-                        controller: _pseudoController,
-                        decoration: const InputDecoration(
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        controller: _emailController,
+                        decoration: InputDecoration(
                           labelText: 'Email',
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.email),
@@ -116,24 +115,19 @@ class _LoginState extends ConsumerState<Login> {
                       ),
                       const SizedBox(height: 10),
                       TextFormField(
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         controller: _passwordController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Mot de passe',
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.lock),
                         ),
                         obscureText: true,
+                        onFieldSubmitted: (_) => _submitForm(context),
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
-                        onPressed: () async {
-                          final email = _pseudoController.text;
-                          final password = _passwordController.text;
-                          await notifier.login(email, password);
-                          if (mounted) {
-                            Navigator.pushReplacementNamed(context, '/home_client');
-                          }
-                        },
+                        onPressed: () => _submitForm(context),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
@@ -180,8 +174,8 @@ class _LoginState extends ConsumerState<Login> {
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () async {
-                            await notifier.login('brlacroix@epfc.eu', 'Password1,');
+                          onPressed: () {
+                            _login(context, 'brlacroix@epfc.eu', password: 'Password1,');
                             if (mounted) {
                               Navigator.pushReplacementNamed(context, '/home_client');
                             }
@@ -196,8 +190,8 @@ class _LoginState extends ConsumerState<Login> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () async {
-                            await notifier.login('mamichel@epfc.eu', 'Password1,');
+                          onPressed: () {
+                            _login(context, 'mamichel@epfc.eu', password: 'Password1,');
                             if (mounted) {
                               Navigator.pushReplacementNamed(context, '/home_client');
                             }
@@ -216,8 +210,8 @@ class _LoginState extends ConsumerState<Login> {
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () async {
-                            await notifier.login('bepenelle@epfc.eu', 'Password1,');
+                          onPressed: () {
+                            _login(context, 'bepenelle@epfc.eu', password: 'Password1,');
                             if (mounted) {
                               Navigator.pushReplacementNamed(context, '/my_restaurants');
                             }
@@ -232,8 +226,8 @@ class _LoginState extends ConsumerState<Login> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () async {
-                            await notifier.login('gedielman@epfc.eu', 'Password1,');
+                          onPressed: () {
+                            _login(context, 'gedielman@epfc.eu', password: 'Password1,');
                             if (mounted) {
                               Navigator.pushReplacementNamed(context, '/my_restaurants');
                             }
@@ -279,5 +273,54 @@ class _LoginState extends ConsumerState<Login> {
         ),
       ),
     );
+  }
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _submitForm(BuildContext context) {
+    if (!_validateForm()) return;
+    _login(context, _emailController.text, password: _passwordController.text);
+  }
+
+  bool _validateForm() {
+    _emailController.validate();
+    _passwordController.validate();
+    return _isFormValid;
+  }
+
+  bool get _isFormValid =>
+      _emailController.isValid == true && _passwordController.isValid == true;
+
+  void _login(BuildContext context, String mail, {String? password}) async {
+    final securityNotifier = ref.read(securityProvider.notifier);
+    await securityNotifier.login(mail, password ?? mail);
+    var securityState = ref.read(securityProvider);
+
+    if (!context.mounted) return;
+
+    if (securityState.hasError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Email ou mot de passe incorrect'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.fixed,
+              duration: Duration(seconds: 5),
+          ),
+      );
+      return;
+    }
+
+    if (securityNotifier.isLoggedIn) {
+      final isClient = securityNotifier.isClient;
+      if (isClient) {
+        Navigator.pushReplacementNamed(context, '/home_client');
+      } else {
+        Navigator.pushReplacementNamed(context, '/my_restaurants');
+      }
+    }
   }
 }

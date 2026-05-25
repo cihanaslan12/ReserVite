@@ -1,18 +1,18 @@
 import 'package:prbd_2526_a08/models/security.dart';
 
 class User {
-  static String? validatePseudo(String? pseudo) {
-    if (pseudo == null || pseudo.isEmpty) {
+  static String? validateEmail(String? email) {
+    if (email == null || email.isEmpty) {
       return 'required';
-    } else if (pseudo.length < 3) {
+    } else if (email.length < 3) {
       return 'must be at least 3 characters';
     } else {
       return null;
     }
   }
 
-  static Future<String?> validatePseudoUnicity(String? value) async {
-    var res = await Security.checkPseudoAvailable(pseudo: value?.trim());
+  static Future<String?> validateEmailUnicity(String? value) async {
+    var res = await Security.checkEmailAvailable(email: value?.trim());
     return res ? null : 'not available';
   }
 
