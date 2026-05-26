@@ -254,7 +254,28 @@ class _LoginState extends ConsumerState<Login> {
                         ).show(context);
 
                         if (action == 'Réinitialiser') {
-                          await Security.resetDatabase();   // PAS CORRECT à CHANGER !!!
+                          try {
+                            await Security.resetDatabase(); // PAS CORRECT à CHANGER !!!
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Base de données réinitialisée avec succès'),
+                                  backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.fixed,
+                                  duration: Duration(seconds: 5),
+                                ),
+                            );
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text('La réinitialisation a échouée'),
+                                    backgroundColor: Colors.red,
+                                    behavior: SnackBarBehavior.fixed,
+                                    duration: Duration(seconds: 5),
+                                ),
+                              );
+                            }
+                          }
                         }
                       },
                       icon: const Icon(Icons.refresh),
