@@ -66,16 +66,19 @@ class SecurityNotifier extends AsyncNotifier<String?> {
   }
 
   Future<void> signup({
+    required String fullName,
     required String email,
     required String password,
+    String? phone
   }) async {
     state = const AsyncValue.loading();
     try {
-      await Security.signup(email: email, password: password);
+      await Security.signup(fullName: fullName, email: email, password: password, phone: phone);
       await login(email, password);
       state = AsyncValue.data(Params.getValue('token'));
     } catch (e) {
       state = AsyncValue.error("Signup failed", StackTrace.current);
+      rethrow;
     }
   }
 }

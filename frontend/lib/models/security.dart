@@ -17,6 +17,19 @@ class Security {
     return token;
   }
 
+  static Future<bool> checkFullNameAvailable({String? fullName}) async {
+    final response = await ApiClient.post(
+      'is_full_name_available',
+      body: json.encode({'full_name': fullName}),
+      anonymous: true,
+    );
+    final dynamic body = json.decode(response.body);
+    if (response.statusCode != 200) {
+      throw Exception('Failed to validate full_name\n\n${body['message']}');
+    }
+    return body;
+  }
+
   static Future<bool> checkEmailAvailable({String? email}) async {
     final response = await ApiClient.post(
       'is_email_available',
@@ -31,12 +44,14 @@ class Security {
   }
 
   static Future<void> signup({
+    required String fullName,
     required String email,
     required String password,
+    String? phone
   }) async {
     final response = await ApiClient.post(
       'signup',
-      body: json.encode({'email': email, 'password': password}),
+      body: json.encode({'full_name': fullName, 'email': email, 'password': password, 'phone': phone}),
       anonymous: true,
     );
     if (response.statusCode != 204) {
