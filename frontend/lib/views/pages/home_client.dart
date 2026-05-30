@@ -9,6 +9,7 @@ class HomeClient extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(securityProvider.notifier);
+    final currentUser = notifier.loggedUser;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -29,7 +30,7 @@ class HomeClient extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Déconnexion',
+            tooltip: 'Déconnexion ($currentUser)',
             onPressed: () {
               notifier.logout();
               Navigator.pushReplacementNamed(context, '/login');

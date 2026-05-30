@@ -47,7 +47,7 @@ class SecurityNotifier extends AsyncNotifier<String?> {
     if (token == null) return null;
     try {
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
-      return decodedToken['sub'];
+      return decodedToken['name'];
     } catch (e) {
       return null;
     }
