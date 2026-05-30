@@ -258,7 +258,7 @@ grant execute on function auth.role() to anon;
 create or replace function is_full_name_available(full_name text) returns boolean as
 $$
 begin
-    return not exists(select 1 from users where users.full_name = is_full_name_available.full_name);
+    return not exists(select 1 from users where trim(lower(users.full_name)) = trim(lower(is_full_name_available.full_name)));
 end
 $$ language plpgsql security definer;
 
