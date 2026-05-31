@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:prbd_2526_a08/models/restaurant.dart';
 
-class RestaurantCard extends StatelessWidget {
+import '../../providers/rest_man_res_provider.dart';
+
+class RestaurantCard extends ConsumerWidget {
   const RestaurantCard({super.key, required this.restaurant});
 
   final Restaurant restaurant;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     String lastReservationText = '';
     if (restaurant.lastReservation != null) {
       lastReservationText = DateFormat("E dd/MM/yyyy", 'fr_FR').format(
@@ -82,7 +85,14 @@ class RestaurantCard extends StatelessWidget {
           ],
         ),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {},
+        onTap: () {
+          ref.read(restManResProvider.notifier).getRestaurantReservations(restaurant.id);
+          Navigator.pushNamed(
+            context,
+            '/restaurant_management_reservations',
+            arguments: restaurant,
+          );
+        },
       ),
     );
   }
