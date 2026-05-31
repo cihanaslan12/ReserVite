@@ -295,3 +295,21 @@ end;
 $$ language plpgsql security definer;
 
 grant execute on function signup to anon;
+
+/* Fonction qui récupère les réservations du user connecté */
+
+create or replace function get_my_reservations()
+    returns table (
+        id int, restaurant_name text, city text, datetime timestamp, number_of_guests int, status status_type) as
+    $$
+    begin
+        return query
+        select r.id, rest.name::text as restaurant_name, rest.city::text, r.datetime, r.number_of_guests, r.status
+        from reservations r
+            join restaurants rest on rest.id = r.restaurant
+        where r.client = (select users.id from users where users.email = auth.email())
+        order by r.datetime desc;
+        end;
+    $$ language plpgsql security definer;
+
+grant execute on function get_my_reservations() to anon, authenticated;
