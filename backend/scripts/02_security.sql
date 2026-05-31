@@ -330,7 +330,8 @@ create or replace function get_my_restaurants()
         from restaurants rest
             join restaurant_managers rm on rm.restaurant = rest.id
         where rm.manager = auth.id()
-        order by (select max(res.datetime) from reservations res where res.restaurant = rest.id) desc;
+        order by (select max(res.datetime) from reservations res where res.restaurant = rest.id) desc,
+                 rest.name::text asc;
     end;
     $$ language plpgsql security definer;
 

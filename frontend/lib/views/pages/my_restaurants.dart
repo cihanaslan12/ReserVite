@@ -83,9 +83,14 @@ class MyRestaurants extends ConsumerWidget {
                   data: (restaurantsList) {
                     if (restaurantsList.isEmpty) {
                       return const Center(
-                        child: Text(
-                          'Aucun restaurants trouvés.',
-                          style: TextStyle(color: Colors.grey, fontSize: 16),
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text(
+                            'Aucun restaurant n\'est géré.'
+                            '\nVeuillez contacter un administrateur pour être assigné à un restaurant.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.red, fontSize: 20),
+                          ),
                         ),
                       );
                     }

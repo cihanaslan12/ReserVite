@@ -31,18 +31,22 @@ class RestaurantCard extends StatelessWidget {
                 Text(
                   restaurant.city,
                 ),
-                const SizedBox(width: 12),
-                const Icon(Icons.star, size: 14, color: Colors.amber),
-                const SizedBox(width: 2),
-                Text(
-                  restaurant.rating.toStringAsFixed(1),
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  '€' * restaurant.priceRange,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
+                if (restaurant.rating > 0) ...[
+                  const SizedBox(width: 12),
+                  const Icon(Icons.star, size: 14, color: Colors.amber),
+                  const SizedBox(width: 2),
+                  Text(
+                    restaurant.rating.toStringAsFixed(1),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+                if (restaurant.priceRange > 0) ...[
+                  const SizedBox(width: 12),
+                  Text(
+                    '€' * restaurant.priceRange,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 4),
