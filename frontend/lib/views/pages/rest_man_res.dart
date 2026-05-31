@@ -12,7 +12,8 @@ class RestaurantManagementReservations extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final restaurant = ModalRoute.of(context)!.settings.arguments as Restaurant;
-    final reservationsAsync = ref.watch(restManResProvider);
+    final reservationsAsync = ref.watch(filteredReservationsProvider);
+    final currentFilter = ref.watch(restManResProvider).value?.currentFilter ?? 'all';
 
     final theme = Theme.of(context);
     final simulatedTime = DateTime(2024, 12, 4, 16, 0);
@@ -96,8 +97,10 @@ class RestaurantManagementReservations extends ConsumerWidget {
                     tooltip: 'Annulées',
                   ),
                 ],
-                selected: const {'all'},
-                onSelectionChanged: (_) {},
+                selected: {currentFilter},
+                onSelectionChanged: (newSelection) {
+                  ref.read(restManResProvider.notifier).setFilter(newSelection.first);
+                },
               ),
             ),
             const SizedBox(height: 8),

@@ -5,22 +5,56 @@ import 'package:prbd_2526_a08/core/tools/abstract_async_notifier.dart';
 import 'package:prbd_2526_a08/models/reservation.dart';
 import 'package:prbd_2526_a08/providers/security_provider.dart';
 
+class MyReservationsState {
+  final List<Reservation> reservations;
+  final String currentFilter;
+
+  MyReservationsState({
+    required this.reservations,
+    required this.currentFilter,
+  });
+
+  MyReservationsState copyWith({
+    List<Reservation>? reservations,
+    String? currentFilter,
+  }) {
+    return MyReservationsState(
+      reservations: reservations ?? this.reservations,
+      currentFilter: currentFilter ?? this.currentFilter,
+    );
+  }
+}
+
 final myReservationsProvider =
-    AsyncNotifierProvider<MyReservationsNotifier, List<Reservation>>(
+    AsyncNotifierProvider.autoDispose<MyReservationsNotifier, MyReservationsState>(
      () => MyReservationsNotifier(),
     );
 
-class MyReservationsNotifier extends AbstractAsyncNotifier<List<Reservation>> {
-  @override
-  Future<List<Reservation>> build() async {
-    ref.watch(securityProvider);
+final filteredMyReservationsProvider = Provider<AsyncValue<List<Reservation>>>((ref) {
+  final stateAsync = ref.watch(myReservationsProvider);
 
-    state = AsyncData([]);
-    state = AsyncLoading();
+  return stateAsync.whenData((state) {
+    if (state.currentFilter == 'all') {
+      return state.reservations;
+    }
+    return state.reservations.where((res) => res.status == state.currentFilter).toList();
+  });
+});
+
+class MyReservationsNotifier extends AbstractAsyncNotifier<MyReservationsState> {
+  @override
+  Future<MyReservationsState> build() async {
     try {
-      return await Reservation.getMyReservations();
+      final reservations = await Reservation.getMyReservations();
+      return MyReservationsState(reservations: reservations, currentFilter: 'pending');
     } catch (e) {
       throw "Quelque chose a mal tourné!\nRéessayez plus tard.";
+    }
+  }
+
+  void setFilter(String newFilter) {
+    if (state.hasValue) {
+      state = AsyncData(state.value!.copyWith(currentFilter: newFilter));
     }
   }
 
@@ -33,7 +67,8 @@ class MyReservationsNotifier extends AbstractAsyncNotifier<List<Reservation>> {
     state = const AsyncValue.loading();
     try {
       final reservations = await Reservation.getMyReservations();
-      state = AsyncData(reservations);
+      final activeFilter = state.value?.currentFilter ?? 'all';
+      state = AsyncData(MyReservationsState(reservations: reservations, currentFilter: activeFilter));
     } catch (e) {
       state = AsyncValue.error(
         "Quelque chose a mal tourné!\nRéessayez plus tard.",

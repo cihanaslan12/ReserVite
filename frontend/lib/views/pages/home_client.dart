@@ -11,11 +11,13 @@ class HomeClient extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.watch(securityProvider.notifier);
-    final reservationNotifier = ref.read(myReservationsProvider.notifier);
     final currentUser = notifier.loggedUser;
-    final theme = Theme.of(context);
 
-    final reservationsProvider = ref.watch(myReservationsProvider);
+    final reservationNotifier = ref.read(myReservationsProvider.notifier);
+
+    final reservationsAsync = ref.watch(filteredMyReservationsProvider);
+    final currentFilter = ref.watch(myReservationsProvider).value?.currentFilter ?? 'pending';
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -39,6 +41,7 @@ class HomeClient extends ConsumerWidget {
             icon: const Icon(Icons.logout),
             tooltip: 'Déconnexion ($currentUser)',
             onPressed: () {
+              ref.invalidate(myReservationsProvider);
               notifier.logout();
               Navigator.pushReplacementNamed(context, '/login');
             },
@@ -102,13 +105,15 @@ class HomeClient extends ConsumerWidget {
                     tooltip: 'Annulées',
                   ),
                 ],
-                selected: const {'pending'},
-                onSelectionChanged: (_) {},
+                selected: {currentFilter},
+                onSelectionChanged: (newSelection) {
+                  ref.read(myReservationsProvider.notifier).setFilter(newSelection.first);
+                },
               ),
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: reservationsProvider.when(
+              child: reservationsAsync.when(
                 loading: () => const Column(
                   children: [
                     LinearProgressIndicator(),
