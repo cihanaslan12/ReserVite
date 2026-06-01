@@ -42,7 +42,13 @@ class ReservationCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            '/reservation_details',
+            arguments: reservation,
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
