@@ -1,6 +1,6 @@
 /* Fonction qui annule une réservation */
 
-drop function if exists cancel_reservation();
+drop function if exists cancel_reservation(int);
 
 create or replace function cancel_reservation(res_id int)
 returns void as

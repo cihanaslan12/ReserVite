@@ -10,7 +10,7 @@ final reservationDetailsProvider =
     );
 
 class  ReservationDetailsNotifier extends AbstractAsyncNotifier<Reservation>{
-  late Reservation _currentReservation;
+  int? _currentReservationId;
 
   @override
   Future<Reservation> build() async {
@@ -23,18 +23,20 @@ class  ReservationDetailsNotifier extends AbstractAsyncNotifier<Reservation>{
       status: 'pending',
       clientName: '',
       address: '',
-      phone: '',
+      restaurantPhone: '',
+      clientPhone: '',
       specialRequests: '',
+      clientEmail: '',
     );
   }
 
   @override
   Future<void> refresh() async {
-    final currentId = state.value!.id;
+    final currentId = _currentReservationId ?? state.value?.id ?? 0;
+    if (currentId == 0) return;
     state = const AsyncValue.loading();
     try {
       final refreshedReservation = await Reservation.getReservationById(currentId);
-      _currentReservation = refreshedReservation;
       state = AsyncData(refreshedReservation);
     } catch (e) {
       state = AsyncValue.error(
@@ -45,8 +47,8 @@ class  ReservationDetailsNotifier extends AbstractAsyncNotifier<Reservation>{
   }
 
   Future<void> getReservation(Reservation reservation) async {
+    _currentReservationId = reservation.id;
     state = AsyncData(reservation);
-    _currentReservation = reservation;
   }
 
   Future<bool> cancelReservation() async {

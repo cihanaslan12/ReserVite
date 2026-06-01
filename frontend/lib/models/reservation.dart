@@ -10,8 +10,10 @@ class Reservation {
   final String status;
   final String clientName;
   final String address;
-  final String phone;
   final String specialRequests;
+  final String restaurantPhone;
+  final String clientPhone;
+  final String clientEmail;
 
   Reservation({
     required this.id,
@@ -22,8 +24,10 @@ class Reservation {
     required this.status,
     required this.clientName,
     required this.address,
-    required this.phone,
     required this.specialRequests,
+    required this.restaurantPhone,
+    required this.clientPhone,
+    required this.clientEmail,
   });
 
   Reservation copyWith({
@@ -35,8 +39,10 @@ class Reservation {
     String? status,
     String? clientName,
     String? address,
-    String? phone,
     String? specialRequests,
+    String? restaurantPhone,
+    String? clientPhone,
+    String? clientEmail,
   }) {
     return Reservation(
       id: id ?? this.id,
@@ -47,8 +53,10 @@ class Reservation {
       status: status ?? this.status,
       clientName: clientName ?? this.clientName,
       address: address ?? this.address,
-      phone: phone ?? this.phone,
       specialRequests: specialRequests ?? this.specialRequests,
+      restaurantPhone: restaurantPhone ?? this.restaurantPhone,
+      clientPhone: clientPhone ?? this.clientPhone,
+      clientEmail: clientEmail ?? this.clientEmail,
     );
   }
 
@@ -60,10 +68,12 @@ class Reservation {
       datetime: DateTime.parse(json['datetime'] ?? DateTime.now().toIso8601String()),
       numberOfGuests: json['number_of_guests'] ?? 0,
       status: json['status'] ?? 'pending',
-      clientName: json['client_name'] ?? 'Nom du clien inconnu',
+      clientName: json['client_name'] ?? 'Inconnu',
       address: json['address'] ?? 'Adresse inconnue',
-      phone: json['phone'] ?? 'Téléphone inconnu',
       specialRequests: json['special_requests'] ?? 'Aucune demande spéciale',
+      restaurantPhone: json['restaurant_phone'] ?? 'Non renseigné',
+      clientPhone: json['client_phone'] ?? 'Non renseigné',
+      clientEmail: json['client_email'] ?? json['email'] ?? 'Non renseigné',
     );
   }
 

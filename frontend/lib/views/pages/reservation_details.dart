@@ -11,12 +11,14 @@ class ReservationDetails extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final reservation = ModalRoute.of(context)!.settings.arguments as Reservation;
-    final reservationState = ref.watch(reservationDetailsProvider);
+    final routeReservation = ModalRoute.of(context)!.settings.arguments as Reservation;
+    final providerReservation = ref.watch(reservationDetailsProvider).value;
+    final reservation = (providerReservation != null && providerReservation.id != 0)
+        ? providerReservation : routeReservation;
 
     final theme = Theme.of(context);
     final simulatedTime = DateTime(2024, 12, 4, 16, 0);
-    final String formattedDate = DateFormat("E dd/MM:yyyy", "fr_FR").format(reservation.datetime);
+    final String formattedDate = DateFormat("E dd/MM/yyyy", "fr_FR").format(reservation.datetime);
     final String formattedTime = DateFormat("HH:mm", "fr_FR").format(reservation.datetime);
 
     final String status = reservation.status;
@@ -118,7 +120,7 @@ class ReservationDetails extends ConsumerWidget {
                           const Icon(Icons.phone, size: 16, color: Colors.grey),
                           const SizedBox(width: 4),
                           Text(
-                            reservation.phone,
+                            reservation.restaurantPhone,
                             style: TextStyle(color: Colors.grey[600]),
                           ),
                         ],

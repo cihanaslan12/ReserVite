@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:prbd_2526_a08/models/reservation.dart';
+import 'package:prbd_2526_a08/providers/reservation_details_provider.dart';
 
-class ReservationCard extends StatelessWidget {
+class ReservationCard extends ConsumerWidget {
   const ReservationCard({super.key, required this.reservation});
 
   final Reservation reservation;
@@ -35,14 +37,16 @@ class ReservationCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final String formattedDate = DateFormat("E dd/MM/yyyy 'à' HH:mm", 'fr_FR')
         .format(reservation.datetime);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
-        onTap: () {
+        onTap: () async {
+          final notifier = ref.read(reservationDetailsProvider.notifier);
+          await notifier.getReservation(reservation);
           Navigator.pushNamed(
             context,
             '/reservation_details',

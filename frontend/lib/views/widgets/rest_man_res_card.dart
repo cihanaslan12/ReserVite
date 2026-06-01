@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+
 import 'package:prbd_2526_a08/models/reservation.dart';
 import 'package:prbd_2526_a08/models/restaurant.dart';
+import 'package:prbd_2526_a08/providers/reservation_details_manager_provider.dart';
 
-class RestManResCard extends StatelessWidget {
+class RestManResCard extends ConsumerWidget {
   const RestManResCard({super.key, required this.restaurant, required this.reservation});
 
   final Restaurant restaurant;
@@ -37,7 +40,7 @@ class RestManResCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final String formattedDate = DateFormat("E dd/MM/yyyy 'à' HH:mm", 'fr_FR')
         .format(reservation.datetime);
     final String status = reservation.status;
@@ -45,7 +48,15 @@ class RestManResCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
-        onTap: () {},
+        onTap: () async {
+          final notifier = ref.read(reservationDetailsManagerProvider.notifier);
+          await notifier.getReservation(reservation);
+          Navigator.pushNamed(
+            context,
+            '/reservation_details_manager',
+            arguments: reservation,
+          );
+        },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(

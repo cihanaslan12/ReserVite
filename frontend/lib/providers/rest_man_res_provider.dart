@@ -62,16 +62,18 @@ class RestManResNotifier extends AbstractAsyncNotifier<RestManResState> {
   }
 
   Future<void> getRestaurantReservations(int restaurantId) async {
-    _currentRestaurantId = restaurantId;
     state = const AsyncValue.loading();
     try {
       final reservations = await Reservation.getRestaurantReservations(restaurantId);
-      state = AsyncData(RestManResState(reservations: reservations, currentFilter: 'all'));
-    } catch (e) {
-      state = AsyncValue.error(
-        "Quelque chose a mal tourné!\nRéessayez plus tard.",
-        StackTrace.current,
-      );
+      if (!ref.mounted) return;
+      if (state.hasValue) {
+        state = AsyncData(state.value!.copyWith(reservations: reservations));
+      } else {
+        state = AsyncData(RestManResState(reservations: reservations, currentFilter: 'all'));
+      }
+    } catch (e, stack) {
+      if (!ref.mounted) return;
+      state = AsyncValue.error(e, stack);
     }
   }
 }
