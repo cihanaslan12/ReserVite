@@ -6,11 +6,14 @@ create or replace function get_my_restaurants()
     returns table (
         id int,
         restaurant_name text,
+        address text,
         city text,
-        rating numeric,
+        rating double precision,
         price_range int,
+        description text,
         last_reservation timestamp,
-        in_pending bigint
+        in_pending int,
+        services json
     ) as
 $$
     begin
@@ -19,11 +22,21 @@ $$
     select
         rest.id,
         rest.name::text as restaurant_name,
-        rest.city::text,
-        rest.rating::numeric,
+        rest.address::text as address,
+        rest.city::text as city,
+        rest.rating,
         rest.price_range as price_range,
+        rest.description,
         (select max(res.datetime) from reservations res where res.restaurant = rest.id) as last_reservation,
-        (select count(*) from reservations res where res.restaurant = rest.id and res.status = 'pending') as in_pending
+        (select count(*) from reservations res where res.restaurant = rest.id and res.status = 'pending') as in_pending,
+        coalesce((select json_agg(json_build_object(
+                                          'day_of_week', s.day_of_week,
+                                          'start_time', to_char(s.start_time, 'HH24:MI'),
+                                          'end_time', to_char(s.end_time, 'HH24:MI')
+                                  ) order by s.day_of_week, s.start_time)
+                  from services s
+                  where s.restaurant = rest.id), '[]'::json
+        ) as services
     from restaurants rest
         join restaurant_managers rm on rm.restaurant = rest.id
     where rm.manager = auth.id()

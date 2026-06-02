@@ -6,9 +6,10 @@ import 'package:prbd_2526_a08/models/restaurant.dart';
 import '../../providers/rest_man_res_provider.dart';
 
 class RestaurantCard extends ConsumerWidget {
-  const RestaurantCard({super.key, required this.restaurant});
+  const RestaurantCard({super.key, required this.restaurant, this.onTap,});
 
   final Restaurant restaurant;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -85,7 +86,7 @@ class RestaurantCard extends ConsumerWidget {
           ],
         ),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () {
+        onTap: onTap ?? () {
           ref.read(restManResProvider.notifier).getRestaurantReservations(restaurant.id);
           Navigator.pushNamed(
             context,

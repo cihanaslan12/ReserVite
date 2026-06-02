@@ -26,7 +26,9 @@ class MyRestaurants extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Rafraîchir les données',
-            onPressed: () {},
+            onPressed: () {
+              ref.read(myRestaurantsProvider.notifier).refresh();
+            },
           ),
           IconButton(
             icon: const Icon(Icons.logout),
