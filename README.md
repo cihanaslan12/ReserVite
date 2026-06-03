@@ -4,8 +4,9 @@
 
 ### Liste des bugs connus
 
-* bug 1
-* bug 2
+* bug dans la modification de réservation, la date doit absolument être pour avoir une modification 
+* bug pas d'affichage des tables disponibles pour l'assignement
+* cancel échoue toujours...
 * ...
 
 ### Liste des fonctionnalités supplémentaires
