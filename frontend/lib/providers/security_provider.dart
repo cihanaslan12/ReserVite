@@ -1,0 +1,84 @@
+import 'dart:async';
+
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+
+import 'package:prbd_2526_a08/core/tools/params.dart';
+import 'package:prbd_2526_a08/models/security.dart';
+
+final securityProvider = AsyncNotifierProvider<SecurityNotifier, String?>(
+      () => SecurityNotifier(),
+);
+
+class SecurityNotifier extends AsyncNotifier<String?> {
+  @override
+  Future<String?> build() async {
+    // pour que le state soit initialisée de manière synchrone
+    state = AsyncData(Params.getValue('token'));
+    return state.value;
+  }
+
+  Future<void> login(String email, String password) async {
+    state = const AsyncLoading();
+    try {
+      var token = await Security.login(email, password);
+      Params.setValue('token', token);
+      state = AsyncData(token);
+    } catch (e) {
+      state = AsyncError(
+        "Something went wrong!\nPlease try again later.",
+        StackTrace.current,
+      );
+    }
+  }
+
+  void logout() {
+    Params.clearValue('token');
+    state = AsyncData(null);
+  }
+
+  bool get isLoggedIn => loggedUser != null;
+
+  String? get loggedUser {
+    return _getUserFromToken(state.value);
+  }
+
+  static String? _getUserFromToken(String? token) {
+    if (token == null) return null;
+    try {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      return decodedToken['name'];
+    } catch (e) {
+      return null;
+    }
+  }
+
+  bool get isClient => _getRoleFromToken(state.value) == 'client';
+
+  static String? _getRoleFromToken(String? token) {
+    if (token == null) return null;
+    try {
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      return decodedToken['role'];
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> signup({
+    required String fullName,
+    required String email,
+    required String password,
+    String? phone
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      await Security.signup(fullName: fullName, email: email, password: password, phone: phone);
+      await login(email, password);
+      state = AsyncValue.data(Params.getValue('token'));
+    } catch (e) {
+      state = AsyncValue.error("Signup failed", StackTrace.current);
+      rethrow;
+    }
+  }
+}

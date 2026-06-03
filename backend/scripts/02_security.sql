@@ -252,3 +252,46 @@ grant execute on function auth.logout_for_test() to anon;
 grant execute on function auth.id() to anon;
 grant execute on function auth.email() to anon;
 grant execute on function auth.role() to anon;
+
+/* Fonction qui permet de vérifier si un full_name est disponible */
+
+create or replace function is_full_name_available(full_name text) returns boolean as
+$$
+begin
+    return not exists(select 1 from users where trim(lower(users.full_name)) = trim(lower(is_full_name_available.full_name)));
+end
+$$ language plpgsql security definer;
+
+grant execute on function is_full_name_available to anon;
+
+/* Fonction qui permet de vérifier si un email est disponible */
+
+create or replace function is_email_available(email text) returns boolean as
+$$
+begin
+    return not exists(select 1 from users where users.email = is_email_available.email);
+end;
+$$ language plpgsql security definer;
+
+grant execute on function is_email_available to anon;
+
+/* Fonction signup */
+
+create or replace function signup(full_name text, email text, password text, phone text) returns void
+as
+$$
+declare
+    hash text;
+begin
+    if not is_full_name_available(full_name) then
+        raise exception 'Ce nom complet est déjà utilisé';
+    elseif not is_email_available(email) then
+        raise exception 'Cet email est déjà utilisé';
+    end if;
+    hash = auth.crypt(signup.password, auth.gen_salt('bf'));
+    insert into users (full_name, email, password, phone) values (signup.full_name, signup.email, hash, signup.phone);
+    update users set password = hash where users.email = signup.email;
+end;
+$$ language plpgsql security definer;
+
+grant execute on function signup to anon;
