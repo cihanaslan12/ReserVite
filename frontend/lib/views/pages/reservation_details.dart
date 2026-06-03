@@ -197,9 +197,10 @@ class ReservationDetails extends ConsumerWidget {
                           existingGuests: reservation.numberOfGuests,
                           existingRequests: reservation.specialRequests,
                           existingSlot: DateFormat("HH:mm", "fr_FR").format(reservation.datetime),
+                          existingDate: reservation.datetime,
                         );
                         if(context.mounted) {
-                          Navigator.pushNamed(
+                          await Navigator.pushNamed(
                             context,
                             '/reservation_form',
                             arguments: {
@@ -208,6 +209,7 @@ class ReservationDetails extends ConsumerWidget {
                               'reservation_id': reservation.id,
                             },
                           );
+                          await ref.read(reservationDetailsProvider.notifier).refresh();
                         }
                       } : null,
                       icon: const Icon(Icons.edit),

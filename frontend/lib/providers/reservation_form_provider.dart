@@ -82,8 +82,10 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
         specialRequests: existingRequests ?? '',
         selectedTimeSlot: existingSlot,
         availableSlots: [],
+        isLoading: true,
       ));
     } else {
+      // 🛠️ RETOUR À TA VERSION D'ORIGINE : Sans forcer de isLoading ici
       state = AsyncData(ReservationFormState(
         selectedDate: simulatedDate,
         numberOfGuests: 2,
@@ -107,7 +109,7 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
   Future<void> changeNumberOfGuests(int count) async {
     if (state.value == null || count < 1) return;
     state = AsyncData(state.value!.copyWith(numberOfGuests: count));
-    await updateSlotStatus(); // On réinterroge pour recalculer l'overbooking
+    await updateSlotStatus();
   }
 
   void selectTimeSlot(String timeStr) {
@@ -129,10 +131,10 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
 
       final response = await ApiClient.post('get_reservation_slot_status',
           body:json.encode({
-        'rest_id': _restaurantId,
-        'date': formattedDate,
-        'nb_of_guests': state.value!.numberOfGuests,
-      }));
+            'rest_id': _restaurantId,
+            'date': formattedDate,
+            'nb_of_guests': state.value!.numberOfGuests,
+          }));
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
         final slots = body.map((item) => ReservationSlot.fromJson(item)).toList();
@@ -167,22 +169,24 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
       if (editReservationId == null) {
         final response = await ApiClient.post('add_reservation',
             body: json.encode({
-          'p_restaurant_id': _restaurantId,
-          'p_datetime': finalDateTime.toIso8601String(),
-          'p_guests': state.value!.numberOfGuests,
-          'p_special_requests': state.value!.specialRequests,
-        }));
+              'rest_id': _restaurantId,
+              'res_time': finalDateTime.toIso8601String(),
+              'nb_of_guests': state.value!.numberOfGuests,
+              'spec_requ': state.value!.specialRequests.trim().isEmpty ? null : state.value!.specialRequests,
+            }));
         state = AsyncData(state.value!.copyWith(isLoading: false));
-        return response.statusCode == 200;
+        return response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204;
       } else {
+        // 🛠️ CORRECTIF POSTGRESQL : Pas de 'rest_id' envoyé pour l'édition
         final response = await ApiClient.post('edit_reservation', body: json.encode({
-          'p_reservation_id': editReservationId,
-          'p_datetime': finalDateTime.toIso8601String(),
-          'p_guests': state.value!.numberOfGuests,
-          'p_special_requests': state.value!.specialRequests,
+          'res_id': editReservationId,
+          'res_time': finalDateTime.toIso8601String(),
+          'nb_of_guests': state.value!.numberOfGuests,
+          'spec_requ': state.value!.specialRequests.trim().isEmpty ? null : state.value!.specialRequests,
+          'new_status' : 'pending',
         }));
         state = AsyncData(state.value!.copyWith(isLoading: false));
-        return response.statusCode == 200;
+        return response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204;
       }
     } catch (e) {
       state = AsyncData(state.value!.copyWith(isLoading: false));

@@ -3,6 +3,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/restaurant.dart';
+import '../../providers/my_reservations_provider.dart';
+import '../../providers/reservation_details_provider.dart';
 import '../../providers/reservation_form_provider.dart';
 
 class ReservationForm extends ConsumerWidget {
@@ -345,11 +347,17 @@ class ReservationForm extends ConsumerWidget {
                       ),
                       const SizedBox(height: 32),
                       ElevatedButton.icon(
-                        onPressed: (isClosed || alreadyReserved || isOverbooked || state.selectedTimeSlot == null)
+                        onPressed: (isClosed ||
+                                    state.selectedTimeSlot == null ||
+                            (editReservationId == null && alreadyReserved))
                             ? null
                             : () async {
                                 final success = await notifier.submitReservation(editReservationId: editReservationId);
                                 if (success && context.mounted) {
+                                  ref.invalidate(myReservationsProvider);
+                                  if (editReservationId != null) {
+                                    ref.invalidate(reservationDetailsProvider);
+                                  }
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text(editReservationId == null ? 'Réservation créée avec succès' : 'Réservation modifiée avec succès')),
                                   );
