@@ -178,18 +178,18 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
         state = AsyncData(state.value!.copyWith(isLoading: false));
         return response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204;
       } else {
-        final bodyParams = {
+        final deleteResponse = await ApiClient.post('cancel_reservation', body: json.encode({
           'res_id': editReservationId,
+        }));
+        final createResponse = await ApiClient.post('add_reservation', body: json.encode({
+          'rest_id': _restaurantId,
           'res_time': finalDateTime.toIso8601String(),
           'nb_of_guests': state.value!.numberOfGuests,
-          'new_status': 'pending',
           'spec_requ': state.value!.specialRequests.trim().isEmpty ? null : state.value!.specialRequests,
-        };
-
-        final response = await ApiClient.post('edit_reservation', body: json.encode(bodyParams));
+        }));
 
         state = AsyncData(state.value!.copyWith(isLoading: false));
-        return response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204;
+        return createResponse.statusCode == 200 || createResponse.statusCode == 201 || createResponse.statusCode == 204;
       }
     } catch (e, stack) {
       state = AsyncData(state.value!.copyWith(isLoading: false));
