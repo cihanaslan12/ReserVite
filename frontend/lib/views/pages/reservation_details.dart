@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../models/reservation.dart';
 import '../../providers/reservation_details_provider.dart';
+import '../../providers/reservation_form_provider.dart';
 import '../widgets/status_chip.dart';
 
 class ReservationDetails extends ConsumerWidget {
@@ -190,12 +191,24 @@ class ReservationDetails extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: canEdit ? () {
-                        Navigator.pushNamed(
-                          context,
-                          '/reservation_form',
-                          arguments: reservation,
+                      onPressed: canEdit ? () async {
+                        await ref.read(reservationFormProvider.notifier).initData(
+                          reservation.restaurantId,
+                          existingGuests: reservation.numberOfGuests,
+                          existingRequests: reservation.specialRequests,
+                          existingSlot: DateFormat("HH:mm", "fr_FR").format(reservation.datetime),
                         );
+                        if(context.mounted) {
+                          Navigator.pushNamed(
+                            context,
+                            '/reservation_form',
+                            arguments: {
+                              'restaurant_id': reservation.restaurantId,
+                              'restaurant_name': reservation.restaurantName,
+                              'reservation_id': reservation.id,
+                            },
+                          );
+                        }
                       } : null,
                       icon: const Icon(Icons.edit),
                       label: const Text('Modifier'),

@@ -5,6 +5,8 @@ import 'package:prbd_2526_a08/providers/my_reservations_provider.dart';
 import 'package:prbd_2526_a08/providers/security_provider.dart';
 import 'package:prbd_2526_a08/views/widgets/reservation_card.dart';
 
+import '../../providers/reservation_form_provider.dart';
+
 class HomeClient extends ConsumerWidget {
   const HomeClient({super.key});
 
@@ -150,7 +152,7 @@ class HomeClient extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          Navigator.pushReplacementNamed(context, '/reservation_form');
+          Navigator.pushNamed(context, '/search_restaurants');
         },
         icon: const Icon(Icons.add),
         label: const Text('Nouvelle réservation'),

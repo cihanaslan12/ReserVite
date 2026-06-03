@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:prbd_2526_a08/providers/reservation_form_provider.dart';
 
 import '../../models/restaurant.dart';
 
 
-import '../widgets/services_row.dart';class RestaurantDetails extends StatelessWidget {
+import '../widgets/services_row.dart';
+
+class RestaurantDetails extends ConsumerWidget {
   const RestaurantDetails({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final restaurant = ModalRoute.of(context)!.settings.arguments as Restaurant;
 
     final theme = Theme.of(context);
@@ -140,8 +144,15 @@ import '../widgets/services_row.dart';class RestaurantDetails extends StatelessW
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO
+                  onPressed: () async {
+                    await ref.read(reservationFormProvider.notifier).initData(restaurant.id);
+                    if (context.mounted) {
+                      Navigator.pushNamed(
+                        context,
+                        '/reservation_form',
+                        arguments: restaurant,
+                      );
+                    }
                   },
                   icon: const Icon(Icons.add),
                   label: const Text('Réserver'),
