@@ -3,7 +3,6 @@
     <script-file value="$PROJECT_DIR$/backend/tests/test_01_login.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_02_impersonation.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_03_reset_database.sql" />
-    <script-file value="$PROJECT_DIR$/backend/tests/test_04_constraints_check.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.00_br_email_unique.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.01_br_client_role.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.02_br_reservation_capacity.sql" />
@@ -19,6 +18,7 @@
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.12_br_no_table_reservations.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.13_br_check_double_reservations.sql" />
     <script-file value="$PROJECT_DIR$/backend/tests/test_04.14_br_check_reservation_created_date.sql" />
+    <script-file value="$PROJECT_DIR$/backend/tests/test_04_constraints_check.sql" />
     <script-mode>FILE</script-mode>
     <data-source id="6d275bb5-c69c-4f95-bc29-f6a29631655b" namespace="database/&quot;prbd-2526-a08&quot;" />
     <method v="2" />
