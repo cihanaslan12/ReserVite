@@ -31,7 +31,7 @@ class ReservationForm extends ConsumerWidget {
     final state = reservationAsync.value!;
 
     final theme = Theme.of(context);
-    final simulatedTime = DateTime(2024, 12, 4, 16, 0);
+    final simulatedDate = DateTime(2024, 12, 4, 16, 0);
     final String formattedDate = DateFormat("E dd/MM/yyyy", "fr_FR").format(state.selectedDate);
 
     bool isClosed = state.availableSlots.isEmpty;
@@ -79,7 +79,7 @@ class ReservationForm extends ConsumerWidget {
                 'Date/heure simulée utilisée pour les tests.\nCliquez pour modifier.',
                 child: Text(
                   DateFormat('EEEE dd/MM/yyyy HH:mm', 'fr_FR')
-                      .format(simulatedTime),
+                      .format(simulatedDate),
                   style: TextStyle(
                     fontSize: 10,
                     color: Colors.grey[400],
