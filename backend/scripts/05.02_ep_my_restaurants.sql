@@ -28,7 +28,7 @@ $$
         rest.price_range as price_range,
         rest.description,
         (select max(res.datetime) from reservations res where res.restaurant = rest.id) as last_reservation,
-        (select count(*) from reservations res where res.restaurant = rest.id and res.status = 'pending') as in_pending,
+        (select count(*) from reservations res where res.restaurant = rest.id and res.status = 'pending')::int as in_pending,
         coalesce((select json_agg(json_build_object(
                                           'day_of_week', s.day_of_week,
                                           'start_time', to_char(s.start_time, 'HH24:MI'),

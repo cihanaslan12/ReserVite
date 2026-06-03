@@ -50,13 +50,17 @@ class Restaurant {
   }
 
   static Future<List<Restaurant>> getMyRestaurants() async {
-    final response = await ApiClient.post(
-      'get_my_restaurants');
-    if (response.statusCode == 200) {
-      final List<dynamic> body = json.decode(response.body);
-      return body.map((dynamic item) => Restaurant.fromJson(item)).toList();
-    } else {
-      throw Exception ('Echec lors de la récupération des restaurants');
+    try {
+      final response = await ApiClient.get('get_my_restaurants');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => Restaurant.fromJson(json)).toList();
+      } else {
+        throw Exception ('Echec lors de la récupération des restaurants');
+      }
+    } catch (e) {
+      throw "Quelque chose a mal tourné!\nRéessayez plus tard.";
     }
   }
 

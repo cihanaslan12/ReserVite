@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:prbd_2526_a08/core/tools/abstract_async_notifier.dart';
 import '../../core/services/api_client.dart';
 import '../models/reservation_slot.dart';
+import 'my_restaurants_provider.dart';
 
 final DateTime simulatedDate = DateTime(2024, 12, 4);
 
@@ -178,20 +179,22 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
         state = AsyncData(state.value!.copyWith(isLoading: false));
         return response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204;
       } else {
-        final deleteResponse = await ApiClient.post('cancel_reservation', body: json.encode({
-          'res_id': editReservationId,
-        }));
-        final createResponse = await ApiClient.post('add_reservation', body: json.encode({
-          'rest_id': _restaurantId,
-          'res_time': finalDateTime.toIso8601String(),
-          'nb_of_guests': state.value!.numberOfGuests,
-          'spec_requ': state.value!.specialRequests.trim().isEmpty ? null : state.value!.specialRequests,
-        }));
+        final response = await ApiClient.post('edit_reservation',
+            body: json.encode({
+              'res_id': editReservationId,
+              'res_time': finalDateTime.toIso8601String(),
+              'nb_of_guests': state.value!.numberOfGuests,
+              'new_status': 'pending',
+              'spec_requ': state.value!.specialRequests.trim().isEmpty ? null : state.value!.specialRequests,
+            }));
 
         state = AsyncData(state.value!.copyWith(isLoading: false));
-        return createResponse.statusCode == 200 || createResponse.statusCode == 201 || createResponse.statusCode == 204;
+
+        ref.invalidate(myRestaurantsProvider);
+
+        return response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204;
       }
-    } catch (e, stack) {
+    } catch (e) {
       state = AsyncData(state.value!.copyWith(isLoading: false));
       return false;
     }

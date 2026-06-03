@@ -13,12 +13,9 @@ final myRestaurantsProvider =
   class MyRestaurantsNotifier extends AbstractAsyncNotifier<List<Restaurant>> {
     @override
     Future<List<Restaurant>> build() async {
-      ref.watch(securityProvider);
-
-      state = AsyncData([]);
-      state = AsyncLoading();
       try {
-        return await Restaurant.getMyRestaurants();
+        final list = await Restaurant.getMyRestaurants();
+        return list;
       } catch (e) {
         throw "Quelque chose a mal tourné!\nRéessayez plus tard.";
       }
@@ -26,7 +23,13 @@ final myRestaurantsProvider =
 
   @override
     Future<void> refresh() async {
-      await getMyRestaurants();
+    state = const AsyncValue.loading();
+    try {
+      final restaurants = await Restaurant.getMyRestaurants();
+      state = AsyncData(restaurants);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
   }
 
   Future<void> getMyRestaurants() async {
