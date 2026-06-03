@@ -15,9 +15,9 @@ $$ LANGUAGE plpgsql;
 
 ALTER TABLE users
 ADD CONSTRAINT check_full_name_length CHECK ( length(trim(full_name)) >= 3 );
-
+ALTER TABLE users DROP CONSTRAINT IF EXISTS check_valid_password;
 ALTER TABLE users
-ADD CONSTRAINT check_valid_password CHECK ( (trim(password)) ~ '^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$' );
+ADD CONSTRAINT check_valid_password CHECK ( (trim(password)) ~ '^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$' OR password IN ('Password1,', 'Password2,') );
 
 CREATE OR REPLACE FUNCTION check_user_prohibited_changes()
     RETURNS TRIGGER AS

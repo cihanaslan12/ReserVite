@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/reservation.dart';
+import '../../providers/assign_tables_provider.dart';
 import '../../providers/reservation_details_manager_provider.dart';
 import '../widgets/status_chip.dart';
 
@@ -22,6 +23,7 @@ class ReservationDetailsManager extends ConsumerWidget {
     final String formattedTime = DateFormat("HH:mm", "fr_FR").format(reservation.datetime);
 
     final String status = reservation.status;
+    final bool isPending = status == 'pending';
     final bool showBtns = status == 'pending' || status == 'confirmed';
     final bool canComplete = !simulatedTime.isBefore(reservation.datetime);
 
@@ -256,6 +258,28 @@ class ReservationDetailsManager extends ConsumerWidget {
               ),
               if (showBtns) ...[
                 const SizedBox(height: 24),
+                if (isPending) ...[
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      await ref.read(assignTablesProvider.notifier).initReservation(reservation.id);
+                      if (context.mounted) {
+                        Navigator.pushNamed(
+                          context,
+                          '/assign_tables',
+                          arguments: reservation,
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: theme.colorScheme.primaryContainer,
+                      foregroundColor: theme.colorScheme.onPrimaryContainer,
+                    ),
+                    icon: const Icon(Icons.table_bar),
+                    label: const Text('Confirmer et assigner tables'),
+                  ),
+                  const SizedBox(height: 8),
+                ],
                 ElevatedButton.icon(
                   onPressed: canComplete ? () {
                     Navigator.pushNamed(

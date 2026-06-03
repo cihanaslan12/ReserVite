@@ -319,6 +319,7 @@ class _LoginState extends ConsumerState<Login> {
   void _login(BuildContext context, String mail, {String? password}) async {
     final securityNotifier = ref.read(securityProvider.notifier);
     await securityNotifier.login(mail, password ?? mail);
+    if (!mounted) return;
     var securityState = ref.read(securityProvider);
 
     if (!context.mounted) return;
