@@ -13,12 +13,7 @@ final myRestaurantsProvider =
   class MyRestaurantsNotifier extends AbstractAsyncNotifier<List<Restaurant>> {
     @override
     Future<List<Restaurant>> build() async {
-      try {
-        final list = await Restaurant.getMyRestaurants();
-        return list;
-      } catch (e) {
-        throw "Quelque chose a mal tourné!\nRéessayez plus tard.";
-      }
+      return Restaurant.getMyRestaurants();
   }
 
   @override
