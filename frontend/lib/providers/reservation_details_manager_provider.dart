@@ -16,6 +16,7 @@ class  ReservationDetailsManagerNotifier extends AbstractAsyncNotifier<Reservati
   Future<Reservation> build() async {
     return Reservation(
       id: 0,
+      restaurantId: 0,
       restaurantName: '',
       city: '',
       datetime: DateTime.now(),

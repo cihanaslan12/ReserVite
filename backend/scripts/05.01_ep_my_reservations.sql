@@ -5,6 +5,7 @@ drop function if exists get_my_reservations();
 create or replace function get_my_reservations()
     returns table (
         id int,
+        restaurant_id int,
         restaurant_name text,
         city text,
         datetime timestamp,
@@ -23,6 +24,7 @@ begin
     return query
     select
         r.id,
+        r.restaurant as restaurant_id,
         rest.name::text as restaurant_name,
         rest.city::text,
         r.datetime,

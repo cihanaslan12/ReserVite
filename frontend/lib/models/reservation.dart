@@ -3,6 +3,7 @@ import 'package:prbd_2526_a08/core/services/api_client.dart';
 
 class Reservation {
   final int id;
+  final int restaurantId;
   final String restaurantName;
   final String city;
   final DateTime datetime;
@@ -17,6 +18,7 @@ class Reservation {
 
   Reservation({
     required this.id,
+    required this.restaurantId,
     required this.restaurantName,
     required this.city,
     required this.datetime,
@@ -32,6 +34,7 @@ class Reservation {
 
   Reservation copyWith({
     int? id,
+    int? restaurantId,
     String? restaurantName,
     String? city,
     DateTime? datetime,
@@ -46,6 +49,7 @@ class Reservation {
   }) {
     return Reservation(
       id: id ?? this.id,
+      restaurantId: restaurantId ?? this.restaurantId,
       restaurantName: restaurantName ?? this.restaurantName,
       city: city ?? this.city,
       datetime: datetime ?? this.datetime,
@@ -63,6 +67,7 @@ class Reservation {
   factory Reservation.fromJson(Map<String, dynamic> json){
     return Reservation(
       id: json['id'] ?? 0,
+      restaurantId: json['restaurant_id'] ?? json['restaurant'] ?? 0,
       restaurantName: json['restaurant_name'] ?? 'Restaurant inconnu',
       city: json['city'] ?? 'Ville inconnue',
       datetime: DateTime.parse(json['datetime'] ?? DateTime.now().toIso8601String()),
