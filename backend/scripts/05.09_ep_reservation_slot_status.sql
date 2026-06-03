@@ -27,8 +27,8 @@ begin
     select s.slot::time
     from day_services ds,
     generate_series(
-        ds.start_time::interval,
-        ds.end_time::interval - slot_interval,
+        '2000-01-01'::date + ds.start_time,
+        '2000-01-01'::date + (ds.end_time - slot_interval),
         slot_interval
     ) as s(slot);
 end;
