@@ -122,7 +122,7 @@ class ReservationForm extends ConsumerWidget {
                                   final datePicker = await showDatePicker(
                                     context: context,
                                     initialDate: state.selectedDate,
-                                    firstDate: DateTime(2024),
+                                    firstDate: simulatedDate,
                                     lastDate: DateTime(2027),
                                   );
                                   if (datePicker != null) {
@@ -159,7 +159,10 @@ class ReservationForm extends ConsumerWidget {
                           const SizedBox(width: 8),
                           IconButton(
                             icon: const Icon(Icons.remove),
-                            onPressed: () async => await notifier.changeDate(state.selectedDate.subtract(const Duration(days: 1))),
+                            onPressed: state.selectedDate.isBefore(simulatedDate) ||
+                                    DateUtils.isSameDay(state.selectedDate, simulatedDate)
+                                ? null
+                                : () async => await notifier.changeDate(state.selectedDate.subtract(const Duration(days: 1))),
                           ),
                           IconButton(
                             icon: const Icon(Icons.add),
@@ -274,7 +277,9 @@ class ReservationForm extends ConsumerWidget {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.remove),
-                              onPressed: () => notifier.changeNumberOfGuests(state.numberOfGuests - 1),
+                              onPressed: state.numberOfGuests <= 1
+                                ? null
+                                : () => notifier.changeNumberOfGuests(state.numberOfGuests - 1),
                             ),
                             IconButton(
                               icon: const Icon(Icons.add),
