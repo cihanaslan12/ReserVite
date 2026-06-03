@@ -200,6 +200,7 @@ class ReservationDetails extends ConsumerWidget {
                           existingDate: reservation.datetime,
                         );
                         if(context.mounted) {
+                          final didModify =
                           await Navigator.pushNamed(
                             context,
                             '/reservation_form',
@@ -209,7 +210,11 @@ class ReservationDetails extends ConsumerWidget {
                               'reservation_id': reservation.id,
                             },
                           );
-                          await ref.read(reservationDetailsProvider.notifier).refresh();
+                          if (didModify == true && context.mounted) {
+                            await ref
+                                .read(reservationDetailsProvider.notifier)
+                                .refresh();
+                          }
                         }
                       } : null,
                       icon: const Icon(Icons.edit),

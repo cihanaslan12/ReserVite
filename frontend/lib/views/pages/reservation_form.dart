@@ -355,13 +355,14 @@ class ReservationForm extends ConsumerWidget {
                                 final success = await notifier.submitReservation(editReservationId: editReservationId);
                                 if (success && context.mounted) {
                                   ref.invalidate(myReservationsProvider);
-                                  if (editReservationId != null) {
-                                    ref.invalidate(reservationDetailsProvider);
-                                  }
+
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text(editReservationId == null ? 'Réservation créée avec succès' : 'Réservation modifiée avec succès')),
                                   );
-                                  Navigator.pop(context);
+                                  if (editReservationId != null) {
+                                    Navigator.pop(context, true);
+                                  }
+                                    Navigator.pop(context);
                                 }
                               },
                         style: ElevatedButton.styleFrom(

@@ -85,7 +85,6 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
         isLoading: true,
       ));
     } else {
-      // 🛠️ RETOUR À TA VERSION D'ORIGINE : Sans forcer de isLoading ici
       state = AsyncData(ReservationFormState(
         selectedDate: simulatedDate,
         numberOfGuests: 2,
@@ -152,7 +151,9 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
   }
 
   Future<bool> submitReservation({int? editReservationId}) async {
-    if (_restaurantId == null || state.value == null || state.value!.selectedTimeSlot == null) return false;
+    if (_restaurantId == null || state.value == null || state.value!.selectedTimeSlot == null) {
+      return false;
+    }
 
     state = AsyncData(state.value!.copyWith(isLoading: true));
 
@@ -177,18 +178,20 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
         state = AsyncData(state.value!.copyWith(isLoading: false));
         return response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204;
       } else {
-        // 🛠️ CORRECTIF POSTGRESQL : Pas de 'rest_id' envoyé pour l'édition
-        final response = await ApiClient.post('edit_reservation', body: json.encode({
+        final bodyParams = {
           'res_id': editReservationId,
           'res_time': finalDateTime.toIso8601String(),
           'nb_of_guests': state.value!.numberOfGuests,
+          'new_status': 'pending',
           'spec_requ': state.value!.specialRequests.trim().isEmpty ? null : state.value!.specialRequests,
-          'new_status' : 'pending',
-        }));
+        };
+
+        final response = await ApiClient.post('edit_reservation', body: json.encode(bodyParams));
+
         state = AsyncData(state.value!.copyWith(isLoading: false));
         return response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204;
       }
-    } catch (e) {
+    } catch (e, stack) {
       state = AsyncData(state.value!.copyWith(isLoading: false));
       return false;
     }
