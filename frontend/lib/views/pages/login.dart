@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 
 import 'package:prbd_2526_a08/core/tools/validating_text_editing_controller.dart';
 import 'package:prbd_2526_a08/core/widgets/dialog_box.dart';
-import 'package:prbd_2526_a08/models/security.dart';
 import 'package:prbd_2526_a08/models/user.dart';
 import 'package:prbd_2526_a08/providers/security_provider.dart';
 
@@ -44,7 +43,9 @@ class _LoginState extends ConsumerState<Login> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Rafraîchir les données',
-            onPressed: () {},
+            onPressed: () {
+              _refresh();
+            },
           ),
         ],
         elevation: 2,
@@ -176,9 +177,6 @@ class _LoginState extends ConsumerState<Login> {
                         child: OutlinedButton.icon(
                           onPressed: () {
                             _login(context, 'brlacroix@epfc.eu', password: 'Password1,');
-                            if (mounted) {
-                              Navigator.pushReplacementNamed(context, '/home_client');
-                            }
                           },
                           icon: const Icon(Icons.person),
                           label: const Text('Client (Bruno)'),
@@ -192,9 +190,6 @@ class _LoginState extends ConsumerState<Login> {
                         child: OutlinedButton.icon(
                           onPressed: () {
                             _login(context, 'mamichel@epfc.eu', password: 'Password1,');
-                            if (mounted) {
-                              Navigator.pushReplacementNamed(context, '/home_client');
-                            }
                           },
                           icon: const Icon(Icons.person),
                           label: const Text('Client (Marc)'),
@@ -212,9 +207,6 @@ class _LoginState extends ConsumerState<Login> {
                         child: OutlinedButton.icon(
                           onPressed: () {
                             _login(context, 'bepenelle@epfc.eu', password: 'Password1,');
-                            if (mounted) {
-                              Navigator.pushReplacementNamed(context, '/my_restaurants');
-                            }
                           },
                           icon: const Icon(Icons.manage_accounts),
                           label: const Text('Manager (Benoît)'),
@@ -228,9 +220,6 @@ class _LoginState extends ConsumerState<Login> {
                         child: OutlinedButton.icon(
                           onPressed: () {
                             _login(context, 'gedielman@epfc.eu', password: 'Password1,');
-                            if (mounted) {
-                              Navigator.pushReplacementNamed(context, '/my_restaurants');
-                            }
                           },
                           icon: const Icon(Icons.manage_accounts),
                           label: const Text('Manager (Geoffrey)'),
@@ -255,15 +244,18 @@ class _LoginState extends ConsumerState<Login> {
 
                         if (action == 'Réinitialiser') {
                           try {
-                            await Security.resetDatabase(); // PAS CORRECT à CHANGER !!!
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            await ref.read(securityProvider.notifier).resetDatabase();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Base de données réinitialisée avec succès'),
+                                  content: Text(
+                                      'Base de données réinitialisée avec succès'),
                                   backgroundColor: Colors.green,
                                   behavior: SnackBarBehavior.fixed,
                                   duration: Duration(seconds: 5),
                                 ),
-                            );
+                              );
+                            }
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -303,38 +295,17 @@ class _LoginState extends ConsumerState<Login> {
   }
 
   void _submitForm(BuildContext context) {
-    if (!_validateForm()) return;
-    _login(context, _emailController.text, password: _passwordController.text);
-  }
-
-  bool _validateForm() {
     _emailController.validate();
     _passwordController.validate();
-    return _isFormValid;
+    if(_emailController.isValid == true && _passwordController.isValid == true) {
+      _login(context, _emailController.text, password: _passwordController.text);
+    }
   }
-
-  bool get _isFormValid =>
-      _emailController.isValid == true && _passwordController.isValid == true;
 
   void _login(BuildContext context, String mail, {String? password}) async {
     final securityNotifier = ref.read(securityProvider.notifier);
     await securityNotifier.login(mail, password ?? mail);
     if (!mounted) return;
-    var securityState = ref.read(securityProvider);
-
-    if (!context.mounted) return;
-
-    if (securityState.hasError) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Email ou mot de passe incorrect'),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.fixed,
-              duration: Duration(seconds: 5),
-          ),
-      );
-      return;
-    }
 
     if (securityNotifier.isLoggedIn) {
       final isClient = securityNotifier.isClient;
@@ -343,6 +314,21 @@ class _LoginState extends ConsumerState<Login> {
       } else {
         Navigator.pushReplacementNamed(context, '/my_restaurants');
       }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Email ou mot de passe incorrect'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.fixed,
+            duration: Duration(seconds: 5),
+        ),
+      );
     }
+  }
+
+  void _refresh() {
+    _emailController.clear();
+    _passwordController.clear();
+    setState(() {});
   }
 }

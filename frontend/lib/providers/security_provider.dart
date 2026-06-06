@@ -81,4 +81,15 @@ class SecurityNotifier extends AsyncNotifier<String?> {
       rethrow;
     }
   }
+
+  Future<void> resetDatabase() async {
+    state = const AsyncValue.loading();
+    try {
+      await Security.resetDatabase();
+      logout;
+    } catch (e, stack) {
+      state = AsyncValue.error("La réinitialisation a échoué", stack);
+      rethrow;
+    }
+  }
 }
