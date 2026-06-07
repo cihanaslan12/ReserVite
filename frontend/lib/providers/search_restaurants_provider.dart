@@ -8,9 +8,9 @@ import '../models/restaurant.dart';
 const int maxRestaurantsLimit = 5;
 
 final searchRestaurantsProvider =
-  AsyncNotifierProvider<SearchRestaurantsNotifier, List<Restaurant>>(
-          () => SearchRestaurantsNotifier(),
-  );
+AsyncNotifierProvider<SearchRestaurantsNotifier, List<Restaurant>>(
+      () => SearchRestaurantsNotifier(),
+);
 
 class SearchRestaurantsNotifier extends AbstractAsyncNotifier<List<Restaurant>> {
   String _currentQuery = '';
@@ -25,23 +25,23 @@ class SearchRestaurantsNotifier extends AbstractAsyncNotifier<List<Restaurant>> 
   Future<void> initData() async {
     if (_allRestaurants.isNotEmpty) return;
     state = const AsyncValue.loading();
-  try {
-    _allRestaurants = await Restaurant.getAllRestaurants();
-    state = AsyncData(_allRestaurants);
-  } catch (e) {
-    state = AsyncValue.error(
-        "Quelque chose a mal tourné!\nRéessayez plus tard.",
-        StackTrace.current
-    );
+    try {
+      _allRestaurants = await Restaurant.getAllRestaurants();
+      state = AsyncData(_allRestaurants);
+    } catch (e) {
+      state = AsyncValue.error(
+          "Quelque chose a mal tourné!\nRéessayez plus tard.",
+          StackTrace.current
+      );
+    }
   }
-}
 
   @override
   Future<void> refresh() async {
     state = const AsyncValue.loading();
     try {
       _allRestaurants = await Restaurant.getAllRestaurants();
-      search(_currentQuery);
+      resetSearch();
     } catch (e) {
       state = AsyncValue.error(
         "Quelque chose a mal tourné!\nRéessayez plus tard.",
@@ -58,10 +58,15 @@ class SearchRestaurantsNotifier extends AbstractAsyncNotifier<List<Restaurant>> 
       final search = query.toLowerCase();
       final filteredList = _allRestaurants.where((rest) {
         return rest.restaurantName.toLowerCase().contains(search) ||
-                rest.city.toLowerCase().contains(search) ||
+            rest.city.toLowerCase().contains(search) ||
             (rest.description != null && rest.description!.toLowerCase().contains(search));
       }).toList();
       state = AsyncData(filteredList);
     }
+  }
+
+  void resetSearch() {
+    _currentQuery = '';
+    state = AsyncData(_allRestaurants);
   }
 }

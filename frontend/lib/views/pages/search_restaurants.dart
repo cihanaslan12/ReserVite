@@ -47,6 +47,7 @@ class _SearchRestaurantsState extends ConsumerState<SearchRestaurants> {
     final theme = Theme.of(context);
     final simulatedTime = DateTime(2024, 12, 4, 16, 0);
 
+    final notifier = ref.read(searchRestaurantsProvider.notifier);
     final restaurantsAsync = ref.watch(searchRestaurantsProvider);
 
     return Scaffold(
@@ -54,6 +55,7 @@ class _SearchRestaurantsState extends ConsumerState<SearchRestaurants> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
+            notifier.resetSearch();
             Navigator.pushReplacementNamed(context, '/home_client');
           },
         ),
@@ -64,8 +66,9 @@ class _SearchRestaurantsState extends ConsumerState<SearchRestaurants> {
             icon: const Icon(Icons.refresh),
             tooltip: 'Rafraîchir les données',
             onPressed: () {
-              ref.read(searchRestaurantsProvider.notifier).refresh();
-            },
+              _searchController.clear();
+              notifier.refresh();
+            }
           ),
         ],
         elevation: 2,
@@ -101,6 +104,7 @@ class _SearchRestaurantsState extends ConsumerState<SearchRestaurants> {
               padding: const EdgeInsets.all(16.0),
               child: TextField(
                 autofocus: true,
+                controller: _searchController,
                 decoration: const InputDecoration(
                   hintText: 'Rechercher par nom, ville, description...',
                   prefixIcon: Icon(Icons.search),
