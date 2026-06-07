@@ -34,6 +34,7 @@ class MyRestaurants extends ConsumerWidget {
             icon: const Icon(Icons.logout),
             tooltip: 'Déconnexion ($currentUser)',
             onPressed: () {
+              ref.invalidate(myRestaurantsProvider);
               notifier.logout();
               Navigator.pushReplacementNamed(context, '/login');
             },
