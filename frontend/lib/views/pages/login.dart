@@ -43,9 +43,7 @@ class _LoginState extends ConsumerState<Login> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Rafraîchir les données',
-            onPressed: () {
-              _refresh();
-            },
+            onPressed: () => _refresh()
           ),
         ],
         elevation: 2,
@@ -307,22 +305,24 @@ class _LoginState extends ConsumerState<Login> {
     await securityNotifier.login(mail, password ?? mail);
     if (!mounted) return;
 
-    if (securityNotifier.isLoggedIn) {
-      final isClient = securityNotifier.isClient;
-      if (isClient) {
-        Navigator.pushReplacementNamed(context, '/home_client');
+    if (context.mounted) {
+      if (securityNotifier.isLoggedIn) {
+        final isClient = securityNotifier.isClient;
+        if (isClient) {
+          Navigator.pushReplacementNamed(context, '/home_client');
+        } else {
+          Navigator.pushReplacementNamed(context, '/my_restaurants');
+        }
       } else {
-        Navigator.pushReplacementNamed(context, '/my_restaurants');
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Email ou mot de passe incorrect'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.fixed,
             duration: Duration(seconds: 5),
-        ),
-      );
+          ),
+        );
+      }
     }
   }
 
