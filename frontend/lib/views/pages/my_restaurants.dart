@@ -11,12 +11,13 @@ class MyRestaurants extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.watch(securityProvider.notifier);
-    final restaurantNotifier = ref.read(myRestaurantsProvider.notifier);
     final currentUser = notifier.loggedUser;
-    final theme = Theme.of(context);
-    final simulatedTime = DateTime(2024, 12, 4, 16, 0);
 
     final restaurantsProvider = ref.watch(myRestaurantsProvider);
+    final restaurantNotifier = ref.read(myRestaurantsProvider.notifier);
+
+    final theme = Theme.of(context);
+    final simulatedTime = DateTime(2024, 12, 4, 16, 0);
 
     return Scaffold(
       appBar: AppBar(
@@ -27,7 +28,7 @@ class MyRestaurants extends ConsumerWidget {
             icon: const Icon(Icons.refresh),
             tooltip: 'Rafraîchir les données',
             onPressed: () {
-              ref.read(myRestaurantsProvider.notifier).refresh();
+              restaurantNotifier.refresh();
             },
           ),
           IconButton(
