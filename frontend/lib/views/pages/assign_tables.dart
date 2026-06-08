@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../models/reservation.dart';
 import '../../providers/assign_tables_provider.dart';
 import '../../providers/my_reservations_provider.dart';
+import '../../providers/reservation_details_manager_provider.dart';
 
 class AssignTables extends ConsumerWidget {
   const AssignTables({super.key});
@@ -14,6 +15,12 @@ class AssignTables extends ConsumerWidget {
 
     final state = ref.watch(assignTablesProvider);
     final notifier = ref.read(assignTablesProvider.notifier);
+
+    if (notifier.currentReservationId != reservation.id) {
+      Future.delayed(Duration.zero, () {
+        notifier.initReservation(reservation.id);
+      });
+    }
 
     final theme = Theme.of(context);
     final simulatedTime = DateTime(2024, 12, 4, 16, 0);
@@ -187,12 +194,15 @@ class AssignTables extends ConsumerWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: (!hasSelections || !isCapacitySufficient || isScreenLoading)
+                  onPressed: (!hasSelections || isScreenLoading)
                       ? null
                       : () async {
                     final success = await notifier.confirmAssignment();
                     if (success && context.mounted) {
                       ref.invalidate(myReservationsProvider);
+                      ref.invalidate(reservationDetailsManagerProvider);
+                      ref.invalidate(assignTablesProvider);
+
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Réservation confirmée avec les tables assignées')),
                       );
