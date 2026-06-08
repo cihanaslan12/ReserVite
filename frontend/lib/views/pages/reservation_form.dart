@@ -37,7 +37,8 @@ class ReservationForm extends ConsumerWidget {
     final String formattedDate = DateFormat("E dd/MM/yyyy", "fr_FR").format(state.selectedDate);
 
     bool isClosed = state.availableSlots.isEmpty;
-    bool alreadyReserved = state.availableSlots.any((slot) => slot.alreadyReserved);
+    bool alreadyReserved = state.availableSlots.isNotEmpty &&
+        state.availableSlots.every((slot) => slot.alreadyReserved);
 
     bool isOverbooked = false;
     if(!isClosed && state.selectedTimeSlot != null) {
@@ -237,7 +238,9 @@ class ReservationForm extends ConsumerWidget {
                         Wrap(
                           spacing: 8.0,
                           runSpacing: 8.0,
-                          children: state.availableSlots.map((slot) {
+                          children: state.availableSlots
+                              .where((slot) => !slot.alreadyReserved)
+                              .map((slot) {
                             final timeStr = slot.slotTime.substring(0, 5);
                             final isSelected = state.selectedTimeSlot == timeStr;
 
@@ -359,10 +362,11 @@ class ReservationForm extends ConsumerWidget {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text(editReservationId == null ? 'Réservation créée avec succès' : 'Réservation modifiée avec succès')),
                                   );
-                                  if (editReservationId != null) {
+                                  if (editReservationId == null) {
+                                    Navigator.of(context).pushNamedAndRemoveUntil('/home_client', (route) => false);
+                                  } else {
                                     Navigator.pop(context, true);
                                   }
-                                    Navigator.pop(context);
                                 }
                               },
                         style: ElevatedButton.styleFrom(

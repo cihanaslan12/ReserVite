@@ -18,7 +18,8 @@ begin
         datetime = res_time,
         status = new_status::status_type,
         special_requests = spec_requ
-    where id = res_id;
+    where id = res_id
+        and client = auth.id();
 end;
 $$ language plpgsql security definer;
 
