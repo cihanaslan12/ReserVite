@@ -18,13 +18,7 @@ final myRestaurantsProvider =
 
   @override
     Future<void> refresh() async {
-    state = const AsyncValue.loading();
-    try {
-      final restaurants = await Restaurant.getMyRestaurants();
-      state = AsyncData(restaurants);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
+      await getMyRestaurants();
   }
 
   Future<void> getMyRestaurants() async {

@@ -7,34 +7,38 @@ create or replace function get_tables_for_assign(res_id int)
         id int,
         name text,
         capacity int,
-        is_available boolean
+        is_occupied boolean
     ) as
 $$
 declare
-    restaurant_id int;
-    res_datetime timestamp;
+    v_restaurant_id int;
+    v_res_datetime timestamp;
 begin
-    select restaurant, reservations.datetime into restaurant_id, res_datetime
+    select restaurant, datetime into v_restaurant_id, v_res_datetime
     from reservations
     where reservations.id = res_id;
 
+    if v_restaurant_id is null then
+        return;
+    end if;
+
     return query
     select
-        t.id,
-        t.name::text,
-        t.capacity,
+        t.id::int,
+        ('Table ' || t.table_number)::text as name,
+        t.capacity::int,
         exists(
             select 1
             from reservation_tables rt
                 join reservations r on r.id = rt.reservation
             where rt.table = t.id
-                and r.datetime = res_datetime
+                and r.datetime = v_res_datetime
                 and r.status <> 'cancelled'
                 and r.id <> res_id
-        ) as is_available
+        ) as is_occupied
     from tables t
-    where t.restaurant = restaurant_id
-    order by t.name asc;
+        where t.restaurant = v_restaurant_id
+        order by t.table_number asc;
 end;
 $$ language plpgsql security definer;
 

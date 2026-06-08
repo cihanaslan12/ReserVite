@@ -194,6 +194,7 @@ class ReservationDetails extends ConsumerWidget {
                       onPressed: canEdit ? () async {
                         await ref.read(reservationFormProvider.notifier).initData(
                           reservation.restaurantId,
+                          editReservationId: reservation.id,
                           existingGuests: reservation.numberOfGuests,
                           existingRequests: reservation.specialRequests,
                           existingSlot: DateFormat("HH:mm", "fr_FR").format(reservation.datetime),

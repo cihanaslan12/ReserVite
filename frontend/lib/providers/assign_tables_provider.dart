@@ -37,6 +37,8 @@ AsyncNotifierProvider<AssignTablesNotifier, AssignTablesState>(() {
 class AssignTablesNotifier extends AbstractAsyncNotifier<AssignTablesState> {
   int? _currentReservationId;
 
+  int? get currentReservationId => _currentReservationId;
+
   @override
   FutureOr<AssignTablesState> build() {
     return AssignTablesState(
@@ -55,17 +57,14 @@ class AssignTablesNotifier extends AbstractAsyncNotifier<AssignTablesState> {
 
   Future<void> initReservation(int reservationId) async {
     _currentReservationId = reservationId;
-    state = AsyncData(AssignTablesState(
-      tables: [],
-      selectedTableIds: {},
-      isLoading: true,
-    ));
+    state = const AsyncLoading();
     await fetchTables();
   }
 
   Future<void> fetchTables() async {
-    if (_currentReservationId == null || state.value == null) return;
-    state = AsyncData(state.value!.copyWith(isLoading: true));
+    if (_currentReservationId == null) {
+      return;
+    }
 
     try {
       final response = await ApiClient.post('get_tables_for_assign', body: json.encode({
@@ -76,17 +75,16 @@ class AssignTablesNotifier extends AbstractAsyncNotifier<AssignTablesState> {
         final List<dynamic> body = json.decode(response.body);
         final fetchedTables = body.map((item) => model.Table.fromJson(item)).toList();
 
-        state = AsyncData(state.value!.copyWith(
-            tables: fetchedTables,
-            selectedTableIds: {},
-            isLoading: false
+        state = AsyncData(AssignTablesState(
+          tables: fetchedTables,
+          selectedTableIds: {},
+          isLoading: false,
         ));
       } else {
-        state = AsyncData(state.value!.copyWith(isLoading: false));
+        state = AsyncError(Exception("Erreur serveur ${response.statusCode}"), StackTrace.current);
       }
-    } catch (e) {
-      print("💥 Crash fetchTables : $e"); // On garde un oeil sur la console en cas de souci JSON
-      state = AsyncData(state.value!.copyWith(isLoading: false));
+    } catch (e, stack) {
+      state = AsyncError(e, stack);
     }
   }
 
@@ -103,21 +101,24 @@ class AssignTablesNotifier extends AbstractAsyncNotifier<AssignTablesState> {
   }
 
   Future<bool> confirmAssignment() async {
-    if (_currentReservationId == null || state.value == null || state.value!.selectedTableIds.isEmpty) return false;
-
-    state = AsyncData(state.value!.copyWith(isLoading: true));
+    if (_currentReservationId == null || state.value == null || state.value!.selectedTableIds.isEmpty) {
+      return false;
+    }
 
     try {
-      final response = await ApiClient.post('confirm_and_assign_tables', body: json.encode({
-        'res_id': _currentReservationId,
-        'table_ids': state.value!.selectedTableIds.toList(),
-      }));
-
-      state = AsyncData(state.value!.copyWith(isLoading: false));
-      return response.statusCode == 200 || response.statusCode == 204;
-    } catch (_) {
-      state = AsyncData(state.value!.copyWith(isLoading: false));
+      final response = await ApiClient.post(
+        'confirm_and_assign_tables',
+        body: json.encode({
+          'res_id': _currentReservationId,
+          'table_ids': state.value!.selectedTableIds.toList(),
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
+        return true;
+      }
       return false;
+    } catch (e) {
+      throw "Quelque chose a mal tourné!\nRéessayez plus tard.";
     }
   }
 }

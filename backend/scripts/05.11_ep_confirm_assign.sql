@@ -1,23 +1,22 @@
 /* Fonction qui permet de confirmer et assigner */
 
-drop function if exists confirm_and_assign_tables(int, int[]);
+drop function if exists confirm_and_assign_tables(int, jsonb);
 
-create or replace function confirm_and_assign_tables(res_id int, table_ids int[])
+create or replace function confirm_and_assign_tables(res_id int, table_ids jsonb)
     returns void as
 $$
-declare t_id int;
 begin
+    delete from reservation_tables
+    where reservation = res_id;
+
+    insert into reservation_tables (reservation, "table")
+    select res_id, value::int
+    from jsonb_array_elements_text(table_ids);
+
     update reservations
-    set status = 'confirmed'
+    set status = 'confirmed'::status_type
     where id = res_id;
-
-    delete from reservation_tables where reservation = res_id;
-
-    foreach t_id in array table_ids loop
-        insert into reservation_tables (reservation, "table")
-        values (res_id, t_id);
-        end loop;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path = public;
 
-grant execute on function confirm_and_assign_tables(int, int[]) to anon, authenticated;
+grant execute on function confirm_and_assign_tables(int, jsonb) to anon, authenticated;
