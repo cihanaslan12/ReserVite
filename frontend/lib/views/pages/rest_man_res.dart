@@ -14,6 +14,14 @@ class RestaurantManagementReservations extends ConsumerWidget {
     final restaurant = ModalRoute.of(context)!.settings.arguments as Restaurant;
     final reservationsAsync = ref.watch(filteredReservationsProvider);
     final currentFilter = ref.watch(restManResProvider).value?.currentFilter ?? 'all';
+    final notifier = ref.read(restManResProvider.notifier);
+
+    if (notifier.currentRestaurantId != restaurant.id) {
+      Future.delayed(Duration.zero, () {
+        ref.read(restManResProvider.notifier).getRestaurantReservations(
+            restaurant.id);
+      });
+    }
 
     final theme = Theme.of(context);
     final simulatedTime = DateTime(2024, 12, 4, 16, 0);
