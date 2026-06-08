@@ -41,12 +41,20 @@ class ReservationForm extends ConsumerWidget {
         state.availableSlots.every((slot) => slot.alreadyReserved);
 
     bool isOverbooked = false;
-    if(!isClosed && state.selectedTimeSlot != null) {
-      final currentSlot = state.availableSlots.firstWhere(
+    int maxAvailableGuests = 0;
+
+    if (state.availableSlots.isNotEmpty) {
+      maxAvailableGuests = state.availableSlots
+          .map((slot) => slot.availableCapacity)
+          .reduce((max, value) => value > max ? value : max);
+      if(!isClosed && state.selectedTimeSlot != null) {
+        final currentSlot = state.availableSlots.firstWhere(
           (slot) => slot.slotTime.substring(0, 5) == state.selectedTimeSlot,
           orElse: () => state.availableSlots.first,
-      );
-      isOverbooked = currentSlot.isOverbooked;
+        );
+        isOverbooked = currentSlot.isOverbooked;
+        maxAvailableGuests = currentSlot.availableCapacity;
+      }
     }
 
     return Scaffold(
@@ -288,7 +296,9 @@ class ReservationForm extends ConsumerWidget {
                             ),
                             IconButton(
                               icon: const Icon(Icons.add),
-                              onPressed: () => notifier.changeNumberOfGuests(state.numberOfGuests + 1),
+                              onPressed: state.numberOfGuests >= maxAvailableGuests
+                                  ? null
+                                  : () => notifier.changeNumberOfGuests(state.numberOfGuests + 1),
                             ),
                           ],
                         ),
