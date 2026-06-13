@@ -28,6 +28,7 @@ class  ReservationDetailsManagerNotifier extends AbstractAsyncNotifier<Reservati
       restaurantPhone: '',
       clientPhone: '',
       clientEmail: '',
+      isVip: false,
     );
   }
 

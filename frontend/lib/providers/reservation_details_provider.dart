@@ -28,6 +28,7 @@ class  ReservationDetailsNotifier extends AbstractAsyncNotifier<Reservation>{
       clientPhone: '',
       specialRequests: '',
       clientEmail: '',
+      isVip: false,
     );
   }
 

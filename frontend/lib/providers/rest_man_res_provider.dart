@@ -29,7 +29,7 @@ final restManResProvider =
           () => RestManResNotifier(),
     );
 
-final filteredReservationsProvider = Provider<AsyncValue<List<Reservation>>>((ref) {
+final filteredReservationsProvider = Provider.autoDispose<AsyncValue<List<Reservation>>>((ref) {
   final stateAsync = ref.watch(restManResProvider);
 
   return stateAsync.whenData((state) {
@@ -42,6 +42,10 @@ final filteredReservationsProvider = Provider<AsyncValue<List<Reservation>>>((re
 
 class RestManResNotifier extends AbstractAsyncNotifier<RestManResState> {
   int? _currentRestaurantId;
+  int? _currentReservationId;
+
+  int? get currentRestaurantId => _currentRestaurantId;
+  int? get currentReservationId => _currentReservationId;
 
   @override
   Future<RestManResState> build() async {
@@ -62,6 +66,7 @@ class RestManResNotifier extends AbstractAsyncNotifier<RestManResState> {
   }
 
   Future<void> getRestaurantReservations(int restaurantId) async {
+    _currentRestaurantId = restaurantId;
     state = const AsyncValue.loading();
     try {
       final reservations = await Reservation.getRestaurantReservations(restaurantId);
@@ -73,6 +78,17 @@ class RestManResNotifier extends AbstractAsyncNotifier<RestManResState> {
       }
     } catch (e, stack) {
       if (!ref.mounted) return;
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  Future<void> toggleReservationVip(int reservationId) async {
+    _currentReservationId = reservationId;
+    state = const AsyncValue.loading();
+    try {
+      await Reservation.toggleReservationVip(reservationId);
+      await refresh();
+    } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
   }

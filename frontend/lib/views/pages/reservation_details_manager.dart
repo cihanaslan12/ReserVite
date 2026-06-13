@@ -17,6 +17,14 @@ class ReservationDetailsManager extends ConsumerWidget {
     final reservation = (providerReservation != null && providerReservation.id != 0)
         ? providerReservation : routeReservation;
 
+    final tablesNotifier = ref.read(assignTablesProvider.notifier);
+    if (tablesNotifier.currentReservationId != reservation.id) {
+      Future.delayed(Duration.zero, () {
+        tablesNotifier.initReservation(reservation.id);
+      });
+    }
+    final tablesAsync = ref.watch(assignTablesProvider);
+
     final theme = Theme.of(context);
     final simulatedTime = DateTime(2024, 12, 4, 16, 0);
     final String formattedDate = DateFormat("E dd/MM/yyyy", "fr_FR").format(reservation.datetime);
@@ -43,6 +51,7 @@ class ReservationDetailsManager extends ConsumerWidget {
             tooltip: 'Rafraîchir les données',
             onPressed: () {
               ref.read(reservationDetailsManagerProvider.notifier).refresh();
+              tablesNotifier.initReservation(reservation.id);
             },
           ),
         ],
@@ -218,44 +227,92 @@ class ReservationDetailsManager extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.table_restaurant, size: 20),
-                            const SizedBox(width: 8),
-                            const Text('Table 2'),
-                            const SizedBox(width: 16),
-                            Text(
-                              '(4 places)',
-                              style: TextStyle(color: Colors.grey[600]),
+              if (reservation.status == 'pending')
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                      'Aucune table assignée (en attente de confirmation)',
+                    ),
+                  ),
+                )
+              else if (reservation.status == 'cancelled')
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                    'Aucune table assignée',
+                  ),
+                ),
+              )
+              else
+                tablesAsync.when(
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                  error: (err, _) => Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text('Erreur lors du chargement : $err', style: const TextStyle(color: Colors.red)),
+                    ),
+                  ),
+                  data: (assignState) {
+                    final assignedTables = assignState.tables;
+                    if (assignedTables.isEmpty) {
+                      return const Card(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Text(
+                              'Aucune table disponible dans ce restaurant.',
+                              style: TextStyle(color: Colors.grey),
                             ),
+                          ),
+                        ),
+                      );
+                    }
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (var table in assignedTables)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.table_restaurant, color: Colors.grey[700], size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      table.name,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Text(
+                                      '(${table.capacity} places)',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                           ],
                         ),
                       ),
-                      Row(
-                        children: [
-                          const Icon(Icons.table_restaurant, size: 20),
-                          const SizedBox(width: 8),
-                          const Text('Table 3'),
-                          const SizedBox(width: 16),
-                          Text(
-                            '(6 places)',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              ),
               if (showBtns) ...[
                 const SizedBox(height: 24),
                 if (isPending) ...[

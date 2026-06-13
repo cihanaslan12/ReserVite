@@ -15,7 +15,8 @@ create or replace function get_restaurant_reservations(restaurant_id int)
         restaurant_phone text,
         special_requests text,
         client_phone text,
-        client_email text
+        client_email text,
+        is_vip bool
     ) as
 $$
 begin
@@ -33,7 +34,8 @@ begin
             ''::text as restaurant_phone,
             res.special_requests::text,
             u.phone::text as client_phone,
-            u.email::text as client_email
+            u.email::text as client_email,
+            res.is_vip as is_vip
         from reservations res
                  join users u on u.id = res.client
                  join restaurants rest on rest.id = res.restaurant

@@ -56,6 +56,8 @@ create table reservations
     special_requests text                 default null
 );
 
+alter table reservations add is_vip bool not null default false;
+
 create table reservation_tables
 (
     reservation int not null references reservations (id) on delete cascade,

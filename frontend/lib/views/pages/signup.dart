@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:prbd_2526_a08/core/tools/validating_text_editing_controller.dart';
 import 'package:prbd_2526_a08/models/user.dart';
@@ -11,30 +11,28 @@ class Signup extends ConsumerStatefulWidget {
 }
 
 class _SignupState extends ConsumerState<Signup> {
-  late ValidatingTextEditingController _fullNameController;
-  late ValidatingTextEditingController _emailController;
-  late ValidatingTextEditingController _passwordController;
-  late ValidatingTextEditingController _confirmPasswordController;
+    final _fullNameController = ValidatingTextEditingController(
+      validator: User.validateFullName,
+      asyncValidator: User.validateFullNameUnicity,
+    );
+
+    final _emailController = ValidatingTextEditingController(
+      validator: User.validateEmail,
+      asyncValidator: User.validateEmailUnicity,
+    );
+
+    final _passwordController = ValidatingTextEditingController(
+      validator: User.validatePassword,
+    );
+
+    late final ValidatingTextEditingController _confirmPasswordController;
+
 
   @override
   void initState() {
     super.initState();
-
-    _fullNameController = ValidatingTextEditingController(
-      validator: User.validateFullName,
-      asyncValidator: User.validateFullNameUnicity,
-    );
     _fullNameController.onAfterValidated = () => setState(() {});
-
-    _emailController = ValidatingTextEditingController(
-      validator: User.validateEmail,
-      asyncValidator: User.validateEmailUnicity,
-    );
     _emailController.onAfterValidated = () => setState(() {});
-
-    _passwordController = ValidatingTextEditingController(
-      validator: User.validatePassword,
-    );
     _passwordController.onAfterValidated = () => setState(() {});
 
     _confirmPasswordController = ValidatingTextEditingController(
@@ -42,6 +40,12 @@ class _SignupState extends ConsumerState<Signup> {
           User.validateConfirmPassword(value, _passwordController.text),
     );
     _confirmPasswordController.onAfterValidated = () => setState(() {});
+
+    _passwordController.addListener(() {
+      if (_confirmPasswordController.text.isNotEmpty) {
+        _confirmPasswordController.validate();
+      }
+    });
   }
 
   @override
@@ -72,7 +76,7 @@ class _SignupState extends ConsumerState<Signup> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Rafraîchir les données',
-            onPressed: () {},
+            onPressed: _refresh,
           ),
         ],
         elevation: 2,
@@ -124,13 +128,13 @@ class _SignupState extends ConsumerState<Signup> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      _fullNameFormField(context, (_) => _submitForm(context)),
+                      _fullNameFormField(),
                       SizedBox(height: 16),
-                      _emailFormField(context, (_) => _submitForm(context)),
+                      _emailFormField(),
                       SizedBox(height: 16),
-                      _passwordFormField(context, (_) => _submitForm(context)),
+                      _passwordFormField(),
                       SizedBox(height: 16),
-                      _confirmPasswordFormField(context, (_) => _submitForm(context)),
+                      _confirmPasswordFormField(),
                       SizedBox(height: 16),
                     ],
                   ),
@@ -157,16 +161,13 @@ class _SignupState extends ConsumerState<Signup> {
     );
   }
 
-  Widget _fullNameFormField(
-    BuildContext context,
-    Future<void> Function(String) onFieldSubmitted,
-  ) {
+  Widget _fullNameFormField() {
     return TextFormField(
       autofocus: true,
       controller: _fullNameController,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       keyboardType: TextInputType.name,
-      onFieldSubmitted: onFieldSubmitted,
+      onFieldSubmitted: (_) => _submitForm(context),
       decoration: InputDecoration(
         labelText: 'Nom complet',
         border: const OutlineInputBorder(),
@@ -176,15 +177,12 @@ class _SignupState extends ConsumerState<Signup> {
     );
   }
 
-  Widget _emailFormField(
-    BuildContext context,
-    Future<void> Function(String) onFieldSubmitted,
-  ) {
+  Widget _emailFormField() {
     return TextFormField(
       controller: _emailController,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       keyboardType: TextInputType.emailAddress,
-      onFieldSubmitted: onFieldSubmitted,
+      onFieldSubmitted: (_) => _submitForm(context),
       decoration: InputDecoration(
         labelText: 'Email',
         border: const OutlineInputBorder(),
@@ -194,17 +192,14 @@ class _SignupState extends ConsumerState<Signup> {
     );
   }
 
-  Widget _passwordFormField(
-    BuildContext context,
-    Future<void> Function(String) onFieldSubmitted,
-  ) {
+  Widget _passwordFormField() {
     return TextFormField(
       controller: _passwordController,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       keyboardType: TextInputType.visiblePassword,
       obscureText: true,
       obscuringCharacter: '*',
-      onFieldSubmitted: onFieldSubmitted,
+      onFieldSubmitted: (_) => _submitForm(context),
       decoration: InputDecoration(
         labelText: 'Mot de passe',
         border: const OutlineInputBorder(),
@@ -213,17 +208,14 @@ class _SignupState extends ConsumerState<Signup> {
       ),
     );
   }
-  Widget _confirmPasswordFormField(
-    BuildContext context,
-    Future<void> Function(String) onFieldSubmitted,
-  ) {
+  Widget _confirmPasswordFormField() {
     return TextFormField(
       controller: _confirmPasswordController,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       keyboardType: TextInputType.visiblePassword,
       obscureText: true,
       obscuringCharacter: '*',
-      onFieldSubmitted: onFieldSubmitted,
+      onFieldSubmitted: (_) => _submitForm(context),
       decoration: InputDecoration(
         labelText: 'Confirmer le mot de passe',
         border: const OutlineInputBorder(),
@@ -234,16 +226,38 @@ class _SignupState extends ConsumerState<Signup> {
   }
 
   Future<void> _submitForm(BuildContext context) async {
-    if (!await _validateForm()) return;
-    await ref
-        .read(securityProvider.notifier)
-        .signup(
-          fullName: _fullNameController.text.trim(),
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
+    final isValid = await _validateForm();
+    if (!isValid) return;
+
+    try {
+      await ref.read(securityProvider.notifier).signup(
+        fullName: _fullNameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      if (!mounted) return;
+
+      final securityState = ref.read(securityProvider);
+      if (ref
+          .read(securityProvider.notifier)
+          .isLoggedIn && !securityState.hasError) {
+        Navigator.pushNamedAndRemoveUntil(
+            context, '/home_client', (route) => false);
+      } else {
+        throw Exception("Inscription invalide");
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Echec de l\'inscription. Veuillez vérifier vos informations.'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.fixed,
+            duration: Duration(seconds: 4),
+          ),
         );
-    if (context.mounted) {
-      Navigator.pushNamedAndRemoveUntil(context, '/home_client', (route) => false);
+      }
     }
   }
 
@@ -260,4 +274,12 @@ class _SignupState extends ConsumerState<Signup> {
       _emailController.isValid == true &&
       _passwordController.isValid == true &&
       _confirmPasswordController.isValid == true;
+
+  void _refresh() {
+    _fullNameController.clear();
+    _emailController.clear();
+    _passwordController.clear();
+    _confirmPasswordController.clear();
+    setState(() {});
+  }
 }

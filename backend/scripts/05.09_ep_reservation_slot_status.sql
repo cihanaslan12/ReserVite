@@ -61,7 +61,7 @@ $$ language plpgsql security definer;
 
 drop function if exists get_reservation_slot_status(int, date, int);
 
-create or replace function get_reservation_slot_status(rest_id int, date date, nb_of_guests int)
+create or replace function get_reservation_slot_status(rest_id int, date date, nb_of_guests int, edit_res_id int default null)
     returns table (
                       slot_time time,
                       is_closed boolean,
@@ -85,14 +85,25 @@ begin
         select
             slots.slot_time as slot_time,
             false as is_closed,
-            exists(
+            (auth.id() is not null
+            and exists(
                 select 1
                 from reservations res
+                    join services ser_res on ser_res.restaurant = res.restaurant
+                        and extract(isodow from res.datetime) = ser_res.day_of_week
+                        and res.datetime::time >= ser_res.start_time
+                        and res.datetime::time < ser_res.end_time
+                    join services ser_sl on ser_sl.restaurant = rest_id
+                        and ser_sl.day_of_week = week_day
+                        and slots.slot_time >= ser_sl.start_time
+                        and slots.slot_time < ser_sl.end_time
                 where res.restaurant = rest_id
                   and res.client = auth.id()
                   and res.datetime::date = date
                   and res.status in ('pending', 'confirmed')
-            ) as already_reserved,
+                  and ser_res.id = ser_sl.id
+                  and (edit_res_id is null or res.id != edit_res_id)
+            )) as already_reserved,
             (rest_total_capacity - coalesce(seats.total_reserved, 0))::int as available_capacity,
             (nb_of_guests > (rest_total_capacity - coalesce(seats.total_reserved, 0)))::boolean as is_overbooked
         from get_restaurant_slots(rest_id, week_day) slots
@@ -102,4 +113,4 @@ begin
 end;
 $$ language plpgsql security definer;
 
-grant execute on function get_reservation_slot_status(int, date, int) to anon, authenticated;
+grant execute on function get_reservation_slot_status(int, date, int, int) to anon, authenticated;

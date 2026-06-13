@@ -52,6 +52,7 @@ AsyncNotifierProvider<ReservationFormNotifier, ReservationFormState>(
 
 class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState> {
   int? _restaurantId;
+  int? _editingReservationId;
 
   @override
   Future<ReservationFormState> build() async {
@@ -73,8 +74,9 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
     return state.value!;
   }
 
-  Future<void> initData(int restaurantId, {int? existingGuests, String? existingRequests, DateTime? existingDate, String? existingSlot}) async {
+  Future<void> initData(int restaurantId, {int? existingGuests, String? existingRequests, DateTime? existingDate, String? existingSlot, int? editReservationId}) async {
     _restaurantId = restaurantId;
+    _editingReservationId = editReservationId;
 
     if (existingSlot != null) {
       state = AsyncData(ReservationFormState(
@@ -134,6 +136,7 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
             'rest_id': _restaurantId,
             'date': formattedDate,
             'nb_of_guests': state.value!.numberOfGuests,
+            'edit_res_id': _editingReservationId,
           }));
       if (response.statusCode == 200) {
         final List<dynamic> body = json.decode(response.body);
@@ -152,6 +155,7 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
   }
 
   Future<bool> submitReservation({int? editReservationId}) async {
+    final finalEditResId = editReservationId ?? _editingReservationId;
     if (_restaurantId == null || state.value == null || state.value!.selectedTimeSlot == null) {
       return false;
     }
@@ -167,12 +171,14 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
       int.parse(timeParts[1]),
     );
 
+    final String formattedDbTimeStamp =
+        "${DateFormat('yyyy-MM-dd').format(finalDateTime)} ${state.value!.selectedTimeSlot!}:00";
     try {
-      if (editReservationId == null) {
+      if (finalEditResId == null) {
         final response = await ApiClient.post('add_reservation',
             body: json.encode({
               'rest_id': _restaurantId,
-              'res_time': finalDateTime.toIso8601String(),
+              'res_time': formattedDbTimeStamp,
               'nb_of_guests': state.value!.numberOfGuests,
               'spec_requ': state.value!.specialRequests.trim().isEmpty ? null : state.value!.specialRequests,
             }));
@@ -181,8 +187,8 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
       } else {
         final response = await ApiClient.post('edit_reservation',
             body: json.encode({
-              'res_id': editReservationId,
-              'res_time': finalDateTime.toIso8601String(),
+              'res_id': finalEditResId,
+              'res_time': formattedDbTimeStamp,
               'nb_of_guests': state.value!.numberOfGuests,
               'new_status': 'pending',
               'spec_requ': state.value!.specialRequests.trim().isEmpty ? null : state.value!.specialRequests,
