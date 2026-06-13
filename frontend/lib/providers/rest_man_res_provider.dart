@@ -42,8 +42,10 @@ final filteredReservationsProvider = Provider.autoDispose<AsyncValue<List<Reserv
 
 class RestManResNotifier extends AbstractAsyncNotifier<RestManResState> {
   int? _currentRestaurantId;
+  int? _currentReservationId;
 
   int? get currentRestaurantId => _currentRestaurantId;
+  int? get currentReservationId => _currentReservationId;
 
   @override
   Future<RestManResState> build() async {
@@ -76,6 +78,17 @@ class RestManResNotifier extends AbstractAsyncNotifier<RestManResState> {
       }
     } catch (e, stack) {
       if (!ref.mounted) return;
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  Future<void> toggleReservationVip(int reservationId) async {
+    _currentReservationId = reservationId;
+    state = const AsyncValue.loading();
+    try {
+      await Reservation.toggleReservationVip(reservationId);
+      await refresh();
+    } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
   }
