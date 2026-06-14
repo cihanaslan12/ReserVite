@@ -241,7 +241,7 @@ class ReservationDetails extends ConsumerWidget {
                                   TextButton(
                                     onPressed: () async {
                                       Navigator.pop(dialogContext);
-                                      final cancelled = await ref.read(reservationDetailsProvider.notifier).cancelReservation();
+                                      final cancelled = await ref.read(reservationDetailsProvider.notifier).cancelReservation(reservation.id);
 
                                       if (!cancelled && context.mounted) {
                                         ScaffoldMessenger.of(context).showSnackBar(
