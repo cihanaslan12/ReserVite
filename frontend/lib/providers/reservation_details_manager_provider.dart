@@ -73,4 +73,22 @@ class  ReservationDetailsManagerNotifier extends AbstractAsyncNotifier<Reservati
       return false;
     }
   }
+
+  Future<bool> completeReservation(int reservationId) async {
+    if (state.value == null) return false;
+    state = const AsyncValue.loading();
+    try {
+      await Reservation.completeReservation(reservationId);
+      ref.read(restManResProvider.notifier).setFilter('all');
+      await ref.read(restManResProvider.notifier).refresh();
+      state = AsyncData(state.value!.copyWith(status: 'completed'));
+      return true;
+    } catch (e) {
+      state = AsyncValue.error(
+        "Impossible de compléter la réservation.",
+        StackTrace.current,
+      );
+      return false;
+    }
+  }
 }

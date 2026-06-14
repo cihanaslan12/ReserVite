@@ -140,6 +140,18 @@ class Reservation {
     }
   }
 
+  static Future<void> completeReservation(int reservationId) async {
+    final response = await ApiClient.post(
+      'complete_reservation',
+      body: json.encode({
+        'res_id': reservationId,
+      }),
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception("Impossible de terminer la réservation.");
+    }
+  }
+
   static Future<void> toggleReservationVip(int reservationId) async {
     final response = await ApiClient.post(
       'toggle_reservation_vip',
