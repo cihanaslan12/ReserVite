@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:prbd_2526_a08/providers/my_reservations_provider.dart';
+import 'package:prbd_2526_a08/providers/rest_man_res_provider.dart';
 import '../core/tools/abstract_async_notifier.dart';
 import '../models/reservation.dart';
 
@@ -54,13 +56,14 @@ class  ReservationDetailsManagerNotifier extends AbstractAsyncNotifier<Reservati
     state = AsyncData(reservation);
   }
 
-  Future<bool> cancelReservation() async {
+  Future<bool> cancelReservation(int reservationId) async {
     if (state.value == null) return false;
-    final currentReservation = state.value!;
     state = const AsyncValue.loading();
     try {
-      await Reservation.cancelReservation(currentReservation.id);
-      state = AsyncData(currentReservation.copyWith(status: 'cancelled'));
+      await Reservation.cancelReservation(reservationId);
+      ref.read(restManResProvider.notifier).setFilter('all');
+      await ref.read(restManResProvider.notifier).refresh();
+      state = AsyncData(state.value!.copyWith(status: 'cancelled'));
       return true;
     } catch (e) {
       state = AsyncValue.error(

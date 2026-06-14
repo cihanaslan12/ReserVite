@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../models/reservation.dart';
-import '../../providers/assign_tables_provider.dart';
-import '../../providers/reservation_details_manager_provider.dart';
-import '../widgets/status_chip.dart';
+import 'package:prbd_2526_a08/models/reservation.dart';
+import 'package:prbd_2526_a08/providers/assign_tables_provider.dart';
+import 'package:prbd_2526_a08/providers/reservation_details_manager_provider.dart';
+import 'package:prbd_2526_a08/views/widgets/status_chip.dart';
 
 class ReservationDetailsManager extends ConsumerWidget {
   const ReservationDetailsManager({super.key});
@@ -368,7 +368,7 @@ class ReservationDetailsManager extends ConsumerWidget {
                           TextButton(
                             onPressed: () async {
                               Navigator.pop(dialogContext);
-                              final cancelled = await ref.read(reservationDetailsManagerProvider.notifier).cancelReservation();
+                              final cancelled = await ref.read(reservationDetailsManagerProvider.notifier).cancelReservation(reservation.id);
 
                               if (!cancelled && context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -376,6 +376,10 @@ class ReservationDetailsManager extends ConsumerWidget {
                                     content: Text('Impossible d\'annuler cette réservation'),
                                     backgroundColor: Colors.red,
                                   ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Réservation annulée avec succès')),
                                 );
                               }
                             },
