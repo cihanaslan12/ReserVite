@@ -61,6 +61,7 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
       numberOfGuests: 2,
       specialRequests: '',
       availableSlots: [],
+      isLoading: false,
     );
   }
 
@@ -93,6 +94,7 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
         numberOfGuests: 2,
         specialRequests: '',
         availableSlots: [],
+        isLoading: false,
       ));
     }
 
@@ -154,11 +156,40 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
     }
   }
 
-  Future<bool> submitReservation({int? editReservationId}) async {
-    final finalEditResId = editReservationId ?? _editingReservationId;
+  Future<bool> addReservation() async {
     if (_restaurantId == null || state.value == null || state.value!.selectedTimeSlot == null) {
       return false;
     }
+    state = AsyncData(state.value!.copyWith(isLoading: true));
+
+    final timeParts = state.value!.selectedTimeSlot!.split(':');
+    final finalDateTime = DateTime(
+      state.value!.selectedDate.year,
+      state.value!.selectedDate.month,
+      state.value!.selectedDate.day,
+      int.parse(timeParts[0]),
+      int.parse(timeParts[1]),
+    );
+    final String formattedDbTimeStamp =
+        "${DateFormat('yyyy-MM-dd').format(finalDateTime)} ${state.value!.selectedTimeSlot!}:00";
+    try {
+      final response = await ApiClient.post('add_reservation',
+        body: json.encode({
+          'rest_id': _restaurantId,
+          'res_time': formattedDbTimeStamp,
+          'nb_of_guests': state.value!.numberOfGuests,
+          'spec_requ': state.value!.specialRequests.trim().isEmpty ? null : state.value!.specialRequests,
+        }));
+      state = AsyncData(state.value!.copyWith(isLoading: false));
+      return response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204;
+    } catch (e) {
+      state = AsyncData(state.value!.copyWith(isLoading: false));
+      return false;
+    }
+  }
+
+  Future<bool> editReservation() async {
+    if (state.value == null) return false;
 
     state = AsyncData(state.value!.copyWith(isLoading: true));
 
@@ -170,36 +201,25 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
       int.parse(timeParts[0]),
       int.parse(timeParts[1]),
     );
-
     final String formattedDbTimeStamp =
-        "${DateFormat('yyyy-MM-dd').format(finalDateTime)} ${state.value!.selectedTimeSlot!}:00";
+      "${DateFormat('yyyy-MM-dd').format(finalDateTime)} ${state.value!.selectedTimeSlot!}:00";
+
     try {
-      if (finalEditResId == null) {
-        final response = await ApiClient.post('add_reservation',
-            body: json.encode({
-              'rest_id': _restaurantId,
-              'res_time': formattedDbTimeStamp,
-              'nb_of_guests': state.value!.numberOfGuests,
-              'spec_requ': state.value!.specialRequests.trim().isEmpty ? null : state.value!.specialRequests,
-            }));
-        state = AsyncData(state.value!.copyWith(isLoading: false));
-        return response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204;
-      } else {
-        final response = await ApiClient.post('edit_reservation',
-            body: json.encode({
-              'res_id': finalEditResId,
-              'res_time': formattedDbTimeStamp,
-              'nb_of_guests': state.value!.numberOfGuests,
-              'new_status': 'pending',
-              'spec_requ': state.value!.specialRequests.trim().isEmpty ? null : state.value!.specialRequests,
-            }));
+      final response = await ApiClient.post('edit_reservation',
+          body: json.encode({
+            'res_id': _editingReservationId,
+            'res_time': formattedDbTimeStamp,
+            'nb_of_guests': state.value!.numberOfGuests,
+            'new_status': 'pending',
+            'spec_requ': state.value!.specialRequests.trim().isEmpty ? null : state.value!.specialRequests,
+          }));
 
-        state = AsyncData(state.value!.copyWith(isLoading: false));
-
+      state = AsyncData(state.value!.copyWith(isLoading: false));
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
         ref.invalidate(myRestaurantsProvider);
-
-        return response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204;
+        return true;
       }
+      return false;
     } catch (e) {
       state = AsyncData(state.value!.copyWith(isLoading: false));
       return false;

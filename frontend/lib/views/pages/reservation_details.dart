@@ -201,20 +201,18 @@ class ReservationDetails extends ConsumerWidget {
                           existingDate: reservation.datetime,
                         );
                         if(context.mounted) {
-                          final didModify =
-                          await Navigator.pushNamed(
+                          final didModify = Navigator.pushNamed(
                             context,
                             '/reservation_form',
                             arguments: {
                               'restaurant_id': reservation.restaurantId,
                               'restaurant_name': reservation.restaurantName,
                               'reservation_id': reservation.id,
+                              'status': reservation.status,
                             },
                           );
                           if (didModify == true && context.mounted) {
-                            await ref
-                                .read(reservationDetailsProvider.notifier)
-                                .refresh();
+                            ref.read(reservationDetailsProvider.notifier).refresh();
                           }
                         }
                       } : null,

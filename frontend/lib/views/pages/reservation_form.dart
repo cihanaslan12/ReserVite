@@ -21,9 +21,9 @@ class ReservationForm extends ConsumerWidget {
     if (arguments is Restaurant) {
       restaurantId = arguments.id;
       restaurantName = arguments.restaurantName;
-    } else if (arguments is Map<String, dynamic>) {
+    } else if (arguments is Map) {
       restaurantId = arguments['restaurant_id'] as int;
-      restaurantName = arguments['restaurant_name'] as String;
+      restaurantName = arguments['restaurant_name']?.toString() ?? '';
       editReservationId = arguments['reservation_id'] as int;
     }
 
@@ -365,7 +365,13 @@ class ReservationForm extends ConsumerWidget {
                             (editReservationId == null && alreadyReserved))
                             ? null
                             : () async {
-                                final success = await notifier.submitReservation(editReservationId: editReservationId);
+                                bool success = false;
+                                if (editReservationId == null) {
+                                  success = await notifier.addReservation();
+                                } else {
+                                  success = await notifier.editReservation();
+                                }
+
                                 if (success && context.mounted) {
                                   ref.invalidate(myReservationsProvider);
 
