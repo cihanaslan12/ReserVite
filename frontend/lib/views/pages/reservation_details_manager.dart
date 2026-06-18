@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 
 import 'package:prbd_2526_a08/models/reservation.dart';
 import 'package:prbd_2526_a08/providers/assign_tables_provider.dart';
+import 'package:prbd_2526_a08/providers/my_restaurants_provider.dart';
 import 'package:prbd_2526_a08/providers/reservation_details_manager_provider.dart';
+import 'package:prbd_2526_a08/providers/rest_man_res_provider.dart';
 import 'package:prbd_2526_a08/views/widgets/status_chip.dart';
 
 class ReservationDetailsManager extends ConsumerWidget {
@@ -20,7 +22,7 @@ class ReservationDetailsManager extends ConsumerWidget {
     final tablesNotifier = ref.read(assignTablesProvider.notifier);
     if (tablesNotifier.currentReservationId != reservation.id) {
       Future.delayed(Duration.zero, () {
-        tablesNotifier.initReservation(reservation.id);
+        tablesNotifier.initReservation(reservation.id, reservation.restaurantId);
       });
     }
     final tablesAsync = ref.watch(assignTablesProvider);
@@ -52,7 +54,7 @@ class ReservationDetailsManager extends ConsumerWidget {
             tooltip: 'Rafraîchir les données',
             onPressed: () {
               ref.read(reservationDetailsManagerProvider.notifier).refresh();
-              tablesNotifier.initReservation(reservation.id);
+              tablesNotifier.initReservation(reservation.id, reservation.restaurantId);
             },
           ),
         ],
@@ -263,7 +265,8 @@ class ReservationDetailsManager extends ConsumerWidget {
                     ),
                   ),
                   data: (assignState) {
-                    final assignedTables = assignState.tables;
+                    final assignedTables = assignState.tables
+                    .where((table) => assignState.selectedTableIds.contains(table.id)).toList();
                     if (assignedTables.isEmpty) {
                       return const Card(
                         child: Padding(
@@ -318,7 +321,9 @@ class ReservationDetailsManager extends ConsumerWidget {
                 if (isPending) ...[
                   ElevatedButton.icon(
                     onPressed: () async {
-                      await ref.read(assignTablesProvider.notifier).initReservation(reservation.id);
+                      ref.read(assignTablesProvider.notifier).resetState();
+                      await ref.read(assignTablesProvider.notifier)
+                          .initReservation(reservation.id, reservation.restaurantId);
                       if (context.mounted) {
                         Navigator.pushNamed(
                           context,

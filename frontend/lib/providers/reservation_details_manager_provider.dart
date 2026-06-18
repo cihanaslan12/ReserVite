@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:prbd_2526_a08/providers/my_reservations_provider.dart';
 import 'package:prbd_2526_a08/providers/rest_man_res_provider.dart';
 import '../core/tools/abstract_async_notifier.dart';
 import '../models/reservation.dart';
@@ -13,6 +12,8 @@ AsyncNotifierProvider<ReservationDetailsManagerNotifier, Reservation>(
 
 class  ReservationDetailsManagerNotifier extends AbstractAsyncNotifier<Reservation>{
   int? _currentReservationId;
+
+  int? get currentReservationId => _currentReservationId;
 
   @override
   Future<Reservation> build() async {
@@ -30,7 +31,6 @@ class  ReservationDetailsManagerNotifier extends AbstractAsyncNotifier<Reservati
       restaurantPhone: '',
       clientPhone: '',
       clientEmail: '',
-      isVip: false,
     );
   }
 
