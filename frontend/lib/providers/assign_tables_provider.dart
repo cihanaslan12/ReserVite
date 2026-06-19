@@ -1,12 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../core/services/api_client.dart';
-import '../core/tools/abstract_async_notifier.dart';
-import '../models/table.dart' as model;
+import 'package:prbd_2526_a08/core/tools/abstract_async_notifier.dart';
+import 'package:prbd_2526_a08/models/table.dart';
+import 'package:prbd_2526_a08/providers/reservation_details_manager_provider.dart';
+import 'package:prbd_2526_a08/providers/rest_man_res_provider.dart';
 
 class AssignTablesState {
-  final List<model.Table> tables;
+  final List<Table> tables;
   final Set<int> selectedTableIds;
   final bool isLoading;
 
@@ -17,7 +17,7 @@ class AssignTablesState {
   });
 
   AssignTablesState copyWith({
-    List<model.Table>? tables,
+    List<Table>? tables,
     Set<int>? selectedTableIds,
     bool? isLoading,
   }) {
@@ -30,17 +30,19 @@ class AssignTablesState {
 }
 
 final assignTablesProvider =
-AsyncNotifierProvider<AssignTablesNotifier, AssignTablesState>(() {
-  return AssignTablesNotifier();
-});
+  AsyncNotifierProvider<AssignTablesNotifier, AssignTablesState>(
+          () => AssignTablesNotifier(),
+  );
 
 class AssignTablesNotifier extends AbstractAsyncNotifier<AssignTablesState> {
   int? _currentReservationId;
+  int? _currentRestaurantId;
 
   int? get currentReservationId => _currentReservationId;
+  int? get currentRestaurantId => _currentRestaurantId;
 
   @override
-  FutureOr<AssignTablesState> build() {
+  Future<AssignTablesState> build() async {
     return AssignTablesState(
       tables: [],
       selectedTableIds: {},
@@ -51,40 +53,45 @@ class AssignTablesNotifier extends AbstractAsyncNotifier<AssignTablesState> {
   @override
   Future<void> refresh() async {
     if (_currentReservationId != null) {
-      await fetchTables();
+      await getRestaurantTables(_currentReservationId!);
+    } else {
+      throw "Refresh impossible.";
     }
   }
 
-  Future<void> initReservation(int reservationId) async {
-    _currentReservationId = reservationId;
-    state = const AsyncLoading();
-    await fetchTables();
-  }
-
-  Future<void> fetchTables() async {
-    if (_currentReservationId == null) {
+  Future<void> initReservation(int reservationId, int restaurantId) async {
+    if (_currentReservationId == reservationId && state.hasValue && state.value!.tables.isNotEmpty) {
       return;
     }
+    _currentReservationId = reservationId;
+    _currentRestaurantId = restaurantId;
+    await getRestaurantTables(reservationId);
+  }
 
+  void resetState() {
+    _currentReservationId = null;
+    _currentRestaurantId = null;
+    state = AsyncData(AssignTablesState(
+      tables: [],
+      selectedTableIds: {},
+      isLoading: false,
+    ));
+  }
+
+  Future<void> getRestaurantTables(int reservationId) async {
+    state = const AsyncValue.loading();
     try {
-      final response = await ApiClient.post('get_tables_for_assign', body: json.encode({
-        'res_id': _currentReservationId,
-      }));
-
-      if (response.statusCode == 200) {
-        final List<dynamic> body = json.decode(response.body);
-        final fetchedTables = body.map((item) => model.Table.fromJson(item)).toList();
-
-        state = AsyncData(AssignTablesState(
-          tables: fetchedTables,
-          selectedTableIds: {},
-          isLoading: false,
-        ));
-      } else {
-        state = AsyncError(Exception("Erreur serveur ${response.statusCode}"), StackTrace.current);
-      }
-    } catch (e, stack) {
-      state = AsyncError(e, stack);
+      final restaurantTables = await Table.getRestaurantTables(reservationId);
+      state = AsyncData(AssignTablesState(
+          tables: restaurantTables,
+          selectedTableIds: state.value?.selectedTableIds ?? {},
+          isLoading: false
+      ));
+    } catch (e) {
+      state = AsyncValue.error(
+        "Quelque chose à mal tourné!\nRéessayez plus tard.",
+        StackTrace.current,
+      );
     }
   }
 
@@ -104,21 +111,20 @@ class AssignTablesNotifier extends AbstractAsyncNotifier<AssignTablesState> {
     if (_currentReservationId == null || state.value == null || state.value!.selectedTableIds.isEmpty) {
       return false;
     }
-
+    state = AsyncValue.data(state.value!.copyWith(isLoading: true));
     try {
-      final response = await ApiClient.post(
-        'confirm_and_assign_tables',
-        body: json.encode({
-          'res_id': _currentReservationId,
-          'table_ids': state.value!.selectedTableIds.toList(),
-        }),
-      );
-      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
-        return true;
-      }
-      return false;
+      await Table.confirmAssignment(_currentReservationId!, state.value!.selectedTableIds.toList());
+      state = AsyncData(state.value!.copyWith(
+          isLoading: false
+      ));
+      return true;
     } catch (e) {
-      throw "Quelque chose a mal tourné!\nRéessayez plus tard.";
+      state = AsyncValue.error(
+        "Impossible de confirmer les tables pour cette réservation.",
+        StackTrace.current,
+      );
+      state = AsyncData(state.value!.copyWith(isLoading: false));
+      return false;
     }
   }
 }

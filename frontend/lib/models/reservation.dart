@@ -15,7 +15,6 @@ class Reservation {
   final String restaurantPhone;
   final String clientPhone;
   final String clientEmail;
-  final bool isVip;
 
   Reservation({
     required this.id,
@@ -31,7 +30,6 @@ class Reservation {
     required this.restaurantPhone,
     required this.clientPhone,
     required this.clientEmail,
-    required this.isVip,
   });
 
   Reservation copyWith({
@@ -48,7 +46,6 @@ class Reservation {
     String? restaurantPhone,
     String? clientPhone,
     String? clientEmail,
-    bool? isVip,
   }) {
     return Reservation(
       id: id ?? this.id,
@@ -64,7 +61,6 @@ class Reservation {
       restaurantPhone: restaurantPhone ?? this.restaurantPhone,
       clientPhone: clientPhone ?? this.clientPhone,
       clientEmail: clientEmail ?? this.clientEmail,
-      isVip: isVip ?? this.isVip,
     );
   }
 
@@ -83,7 +79,6 @@ class Reservation {
       restaurantPhone: json['restaurant_phone'] ?? 'Non renseigné',
       clientPhone: json['client_phone'] ?? 'Non renseigné',
       clientEmail: json['client_email'] ?? json['email'] ?? 'Non renseigné',
-      isVip: json['is_vip'] ?? false,
     );
   }
 
@@ -137,6 +132,18 @@ class Reservation {
     );
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception("Echec de l'annulation de la réservation.");
+    }
+  }
+
+  static Future<void> completeReservation(int reservationId) async {
+    final response = await ApiClient.post(
+      'complete_reservation',
+      body: json.encode({
+        'res_id': reservationId,
+      }),
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception("Impossible de terminer la réservation.");
     }
   }
 

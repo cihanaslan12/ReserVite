@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../models/reservation.dart';
-import '../../providers/assign_tables_provider.dart';
-import '../../providers/reservation_details_manager_provider.dart';
-import '../widgets/status_chip.dart';
+import 'package:prbd_2526_a08/models/reservation.dart';
+import 'package:prbd_2526_a08/providers/assign_tables_provider.dart';
+import 'package:prbd_2526_a08/providers/my_restaurants_provider.dart';
+import 'package:prbd_2526_a08/providers/reservation_details_manager_provider.dart';
+import 'package:prbd_2526_a08/providers/rest_man_res_provider.dart';
+import 'package:prbd_2526_a08/views/widgets/status_chip.dart';
 
 class ReservationDetailsManager extends ConsumerWidget {
   const ReservationDetailsManager({super.key});
@@ -20,7 +22,7 @@ class ReservationDetailsManager extends ConsumerWidget {
     final tablesNotifier = ref.read(assignTablesProvider.notifier);
     if (tablesNotifier.currentReservationId != reservation.id) {
       Future.delayed(Duration.zero, () {
-        tablesNotifier.initReservation(reservation.id);
+        tablesNotifier.initReservation(reservation.id, reservation.restaurantId);
       });
     }
     final tablesAsync = ref.watch(assignTablesProvider);
@@ -32,6 +34,7 @@ class ReservationDetailsManager extends ConsumerWidget {
 
     final String status = reservation.status;
     final bool isPending = status == 'pending';
+    final bool isConfirmed = status == 'confirmed';
     final bool showBtns = status == 'pending' || status == 'confirmed';
     final bool canComplete = !simulatedTime.isBefore(reservation.datetime);
 
@@ -51,7 +54,7 @@ class ReservationDetailsManager extends ConsumerWidget {
             tooltip: 'Rafraîchir les données',
             onPressed: () {
               ref.read(reservationDetailsManagerProvider.notifier).refresh();
-              tablesNotifier.initReservation(reservation.id);
+              tablesNotifier.initReservation(reservation.id, reservation.restaurantId);
             },
           ),
         ],
@@ -262,7 +265,8 @@ class ReservationDetailsManager extends ConsumerWidget {
                     ),
                   ),
                   data: (assignState) {
-                    final assignedTables = assignState.tables;
+                    final assignedTables = assignState.tables
+                    .where((table) => assignState.selectedTableIds.contains(table.id)).toList();
                     if (assignedTables.isEmpty) {
                       return const Card(
                         child: Padding(
@@ -313,12 +317,13 @@ class ReservationDetailsManager extends ConsumerWidget {
                     );
                   },
                 ),
-              if (showBtns) ...[
                 const SizedBox(height: 24),
                 if (isPending) ...[
                   ElevatedButton.icon(
                     onPressed: () async {
-                      await ref.read(assignTablesProvider.notifier).initReservation(reservation.id);
+                      ref.read(assignTablesProvider.notifier).resetState();
+                      await ref.read(assignTablesProvider.notifier)
+                          .initReservation(reservation.id, reservation.restaurantId);
                       if (context.mounted) {
                         Navigator.pushNamed(
                           context,
@@ -337,18 +342,69 @@ class ReservationDetailsManager extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                 ],
+                if (isConfirmed) ...[
                 ElevatedButton.icon(
                   onPressed: canComplete ? () {
-                    Navigator.pushNamed(
-                      context,
-                      '/reservation_form',
-                      arguments: reservation,
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext dialogContext) {
+                        return AlertDialog(
+                          title: const Text('Terminer la réservation'),
+                          content: const Text('Voulez-vous marquer cette réservation comme terminée ?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              style: TextButton.styleFrom(foregroundColor: Colors.blue),
+                              child: const Text('Non'),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.pop(dialogContext);
+                                final completed = await ref
+                                      .read(reservationDetailsManagerProvider.notifier)
+                                      .completeReservation(reservation.id);
+                                if (!completed && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Impossible de terminer cette réservation'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                } else if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Réservation marquée comme terminée')),
+                                  );
+                                }
+                              },
+                              style: TextButton.styleFrom(foregroundColor: Colors.red),
+                              child: const Text('Oui'),
+                            ),
+                          ],
+                        );
+                      },
                     );
                   } : null,
                   icon: const Icon(Icons.check_circle),
                   label: const Text('Marquer comme terminée'),
                 ),
+                if(!canComplete) ...[
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: const Text(
+                      'La réservation ne peut être terminée que durant son service ou après celui-ci',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
+                ],
+                if (showBtns) ...[
                 OutlinedButton.icon(
                 onPressed: () {
                   showDialog(
@@ -368,7 +424,10 @@ class ReservationDetailsManager extends ConsumerWidget {
                           TextButton(
                             onPressed: () async {
                               Navigator.pop(dialogContext);
-                              final cancelled = await ref.read(reservationDetailsManagerProvider.notifier).cancelReservation();
+                              final cancelled =
+                                await ref
+                                    .read(reservationDetailsManagerProvider.notifier)
+                                    .cancelReservation(reservation.id);
 
                               if (!cancelled && context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -376,6 +435,10 @@ class ReservationDetailsManager extends ConsumerWidget {
                                     content: Text('Impossible d\'annuler cette réservation'),
                                     backgroundColor: Colors.red,
                                   ),
+                                );
+                              } else if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Réservation annulée avec succès')),
                                 );
                               }
                             },
@@ -387,7 +450,6 @@ class ReservationDetailsManager extends ConsumerWidget {
                       );
                     },
                   );
-
                 },
                 icon: const Icon(Icons.cancel),
                 label: const Text('Annuler'),

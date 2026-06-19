@@ -120,28 +120,6 @@ class RestManResCard extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            reservation.isVip ? Icons.star : Icons.star_border,
-                            color: reservation.isVip ? Colors.yellow : Colors.grey,
-                          ),
-                          onPressed: () async {
-                            try {
-                              notifier.toggleReservationVip(reservation.id);
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(e.toString()),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
