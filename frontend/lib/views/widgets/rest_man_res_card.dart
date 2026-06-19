@@ -6,6 +6,8 @@ import 'package:prbd_2526_a08/models/reservation.dart';
 import 'package:prbd_2526_a08/models/restaurant.dart';
 import 'package:prbd_2526_a08/providers/reservation_details_manager_provider.dart';
 
+import 'package:prbd_2526_a08/providers/rest_man_res_provider.dart';
+
 class RestManResCard extends ConsumerWidget {
   const RestManResCard({super.key, required this.restaurant, required this.reservation});
 
@@ -44,6 +46,8 @@ class RestManResCard extends ConsumerWidget {
     final String formattedDate = DateFormat("E dd/MM/yyyy 'à' HH:mm", 'fr_FR')
         .format(reservation.datetime);
     final String status = reservation.status;
+
+    final notifier = ref.read(restManResProvider.notifier);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),

@@ -16,7 +16,9 @@ begin
     update reservations
     set status = 'confirmed'::status_type
     where id = res_id;
+
+    set constraints all immediate;
 end;
-$$ language plpgsql security definer set search_path = public;
+$$ language plpgsql security definer;
 
 grant execute on function confirm_and_assign_tables(int, jsonb) to anon, authenticated;

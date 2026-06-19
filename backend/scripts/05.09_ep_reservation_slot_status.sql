@@ -38,7 +38,7 @@ $$ language plpgsql security definer;
 
 drop function if exists get_restaurant_reserved_seats(int, date);
 
-create or replace function get_restaurant_reserved_seats(rest_id int, date date)
+create or replace function get_restaurant_reserved_seats(rest_id int, date date, edit_res_id int default null)
     returns table (
         res_time time,
         total_reserved int
@@ -53,13 +53,14 @@ begin
     where res.restaurant = rest_id
         and res.datetime::date = date
         and res.status in ('pending', 'confirmed')
+        and (edit_res_id is null or res.id != edit_res_id)
     group by res.datetime::time;
 end;
 $$ language plpgsql security definer;
 
 /* Fonction (principale) qui récupère la capacité en fonction des crénaux */
 
-drop function if exists get_reservation_slot_status(int, date, int);
+drop function if exists get_reservation_slot_status(int, date, int, int);
 
 create or replace function get_reservation_slot_status(rest_id int, date date, nb_of_guests int, edit_res_id int default null)
     returns table (
@@ -107,7 +108,7 @@ begin
             (rest_total_capacity - coalesce(seats.total_reserved, 0))::int as available_capacity,
             (nb_of_guests > (rest_total_capacity - coalesce(seats.total_reserved, 0)))::boolean as is_overbooked
         from get_restaurant_slots(rest_id, week_day) slots
-                 left join get_restaurant_reserved_seats(rest_id, date) seats
+                 left join get_restaurant_reserved_seats(rest_id, date, edit_res_id) seats
                            on seats.res_time = slots.slot_time
         order by slots.slot_time asc;
 end;

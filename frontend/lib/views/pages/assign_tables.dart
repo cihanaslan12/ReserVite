@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../../models/reservation.dart';
-import '../../providers/assign_tables_provider.dart';
-import '../../providers/my_reservations_provider.dart';
-import '../../providers/reservation_details_manager_provider.dart';
+import 'package:prbd_2526_a08/models/reservation.dart';
+import 'package:prbd_2526_a08/providers/assign_tables_provider.dart';
+import 'package:prbd_2526_a08/providers/my_restaurants_provider.dart';
+import 'package:prbd_2526_a08/providers/reservation_details_manager_provider.dart';
+import 'package:prbd_2526_a08/providers/rest_man_res_provider.dart';
 
 class AssignTables extends ConsumerWidget {
   const AssignTables({super.key});
@@ -18,7 +19,7 @@ class AssignTables extends ConsumerWidget {
 
     if (notifier.currentReservationId != reservation.id) {
       Future.delayed(Duration.zero, () {
-        notifier.initReservation(reservation.id);
+        notifier.initReservation(reservation.id, reservation.restaurantId);
       });
     }
 
@@ -199,14 +200,16 @@ class AssignTables extends ConsumerWidget {
                       : () async {
                     final success = await notifier.confirmAssignment();
                     if (success && context.mounted) {
-                      ref.invalidate(myReservationsProvider);
-                      ref.invalidate(reservationDetailsManagerProvider);
-                      ref.invalidate(assignTablesProvider);
-
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Réservation confirmée avec les tables assignées')),
                       );
                       Navigator.pop(context);
+
+                      notifier.resetState();
+                      ref.read(reservationDetailsManagerProvider.notifier).refresh();
+                      //ref.read(assignTablesProvider.notifier).refresh();
+                      ref.read(restManResProvider.notifier).refresh();
+                      ref.invalidate(myRestaurantsProvider);
                     } else if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Erreur lors de la validation des tables.'), backgroundColor: Colors.red),
