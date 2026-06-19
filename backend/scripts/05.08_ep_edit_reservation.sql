@@ -19,6 +19,7 @@ begin
         status = new_status::public.status_type,
         special_requests = spec_requ
     where id = res_id;
+    set constraints all immediate;
 end;
 $$ language plpgsql security definer;
 

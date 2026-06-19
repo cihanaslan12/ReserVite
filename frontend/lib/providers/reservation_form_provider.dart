@@ -1,49 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:prbd_2526_a08/core/services/api_client.dart';
 import 'package:prbd_2526_a08/core/tools/abstract_async_notifier.dart';
-import '../../core/services/api_client.dart';
-import '../models/reservation_slot.dart';
-import 'my_restaurants_provider.dart';
+import 'package:prbd_2526_a08/models/reservation_form_state.dart';
+import 'package:prbd_2526_a08/models/reservation_slot.dart';
+import 'package:prbd_2526_a08/providers/my_restaurants_provider.dart';
 
 final DateTime simulatedDate = DateTime(2024, 12, 4);
-
-class ReservationFormState {
-  final DateTime selectedDate;
-  final String? selectedTimeSlot;
-  final int numberOfGuests;
-  final String specialRequests;
-  final List<ReservationSlot> availableSlots;
-  final bool isLoading;
-
-  ReservationFormState({
-    required this.selectedDate,
-    this.selectedTimeSlot,
-    required this.numberOfGuests,
-    required this.specialRequests,
-    required this.availableSlots,
-    this.isLoading = false,
-  });
-
-  ReservationFormState copyWith({
-    DateTime? selectedDate,
-    String? selectedTimeSlot,
-    int? numberOfGuests,
-    String? specialRequests,
-    List<ReservationSlot>? availableSlots,
-    bool? isLoading,
-  }) {
-    return ReservationFormState(
-      selectedDate: selectedDate ?? this.selectedDate,
-      selectedTimeSlot: selectedTimeSlot ?? this.selectedTimeSlot,
-      numberOfGuests: numberOfGuests ?? this.numberOfGuests,
-      specialRequests: specialRequests ?? this.specialRequests,
-      availableSlots: availableSlots ?? this.availableSlots,
-      isLoading: isLoading ?? this.isLoading,
-    );
-  }
-}
 
 final reservationFormProvider =
 AsyncNotifierProvider<ReservationFormNotifier, ReservationFormState>(
@@ -58,6 +24,7 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
   Future<ReservationFormState> build() async {
     return ReservationFormState(
       selectedDate: simulatedDate,
+      selectedTimeSlot: null,
       numberOfGuests: 2,
       specialRequests: '',
       availableSlots: [],
@@ -71,6 +38,8 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
     state = AsyncData(initialState);
     if(_restaurantId != null) {
       await updateSlotStatus();
+    } else {
+      state = AsyncData(await build());
     }
     return state.value!;
   }
@@ -79,24 +48,18 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
     _restaurantId = restaurantId;
     _editingReservationId = editReservationId;
 
-    if (existingSlot != null) {
-      state = AsyncData(ReservationFormState(
+    state = AsyncData(
+      ReservationFormState(
         selectedDate: existingDate ?? simulatedDate,
-        numberOfGuests: existingGuests ?? 2,
-        specialRequests: existingRequests ?? '',
         selectedTimeSlot: existingSlot,
+        numberOfGuests: existingGuests ?? 2,
+        specialRequests: existingRequests == 'Aucune demande spéciale'
+            ? ''
+            : existingRequests ?? '',
         availableSlots: [],
         isLoading: true,
-      ));
-    } else {
-      state = AsyncData(ReservationFormState(
-        selectedDate: simulatedDate,
-        numberOfGuests: 2,
-        specialRequests: '',
-        availableSlots: [],
-        isLoading: false,
-      ));
-    }
+      ),
+    );
 
     await updateSlotStatus();
   }
@@ -162,16 +125,8 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
     }
     state = AsyncData(state.value!.copyWith(isLoading: true));
 
-    final timeParts = state.value!.selectedTimeSlot!.split(':');
-    final finalDateTime = DateTime(
-      state.value!.selectedDate.year,
-      state.value!.selectedDate.month,
-      state.value!.selectedDate.day,
-      int.parse(timeParts[0]),
-      int.parse(timeParts[1]),
-    );
-    final String formattedDbTimeStamp =
-        "${DateFormat('yyyy-MM-dd').format(finalDateTime)} ${state.value!.selectedTimeSlot!}:00";
+    final formattedDbTimeStamp = _buildDbTimeStamp();
+
     try {
       final response = await ApiClient.post('add_reservation',
         body: json.encode({
@@ -193,16 +148,7 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
 
     state = AsyncData(state.value!.copyWith(isLoading: true));
 
-    final timeParts = state.value!.selectedTimeSlot!.split(':');
-    final finalDateTime = DateTime(
-      state.value!.selectedDate.year,
-      state.value!.selectedDate.month,
-      state.value!.selectedDate.day,
-      int.parse(timeParts[0]),
-      int.parse(timeParts[1]),
-    );
-    final String formattedDbTimeStamp =
-      "${DateFormat('yyyy-MM-dd').format(finalDateTime)} ${state.value!.selectedTimeSlot!}:00";
+    final formattedDbTimeStamp = _buildDbTimeStamp();
 
     try {
       final response = await ApiClient.post('edit_reservation',
@@ -224,5 +170,20 @@ class ReservationFormNotifier extends AbstractAsyncNotifier<ReservationFormState
       state = AsyncData(state.value!.copyWith(isLoading: false));
       return false;
     }
+  }
+
+  String _buildDbTimeStamp() {
+    final timeParts = state.value!.selectedTimeSlot!.split(':');
+
+    final finalDateTime = DateTime(
+      state.value!.selectedDate.year,
+      state.value!.selectedDate.month,
+      state.value!.selectedDate.day,
+      int.parse(timeParts[0]),
+      int.parse(timeParts[1]),
+    );
+
+    return "${DateFormat('yyyy-MM-dd').format(finalDateTime)} "
+        "${state.value!.selectedTimeSlot!}:00";
   }
 }

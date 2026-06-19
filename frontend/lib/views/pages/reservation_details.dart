@@ -3,6 +3,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/reservation.dart';
+import '../../providers/my_reservations_provider.dart';
 import '../../providers/reservation_details_provider.dart';
 import '../../providers/reservation_form_provider.dart';
 import '../widgets/status_chip.dart';
@@ -192,16 +193,17 @@ class ReservationDetails extends ConsumerWidget {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: canEdit ? () async {
+                        await ref.read(reservationDetailsProvider.notifier).getReservation(reservation);
                         await ref.read(reservationFormProvider.notifier).initData(
                           reservation.restaurantId,
                           editReservationId: reservation.id,
                           existingGuests: reservation.numberOfGuests,
                           existingRequests: reservation.specialRequests,
-                          existingSlot: DateFormat("HH:mm", "fr_FR").format(reservation.datetime),
                           existingDate: reservation.datetime,
+                          existingSlot: DateFormat("HH:mm", "fr_FR").format(reservation.datetime),
                         );
-                        if(context.mounted) {
-                          final didModify = Navigator.pushNamed(
+                        if (context.mounted) {
+                          final didModify = await Navigator.pushNamed(
                             context,
                             '/reservation_form',
                             arguments: {
@@ -212,7 +214,8 @@ class ReservationDetails extends ConsumerWidget {
                             },
                           );
                           if (didModify == true && context.mounted) {
-                            ref.read(reservationDetailsProvider.notifier).refresh();
+                            await ref.read(myReservationsProvider.notifier).refresh();
+                            await ref.read(reservationDetailsProvider.notifier).refresh();
                           }
                         }
                       } : null,
