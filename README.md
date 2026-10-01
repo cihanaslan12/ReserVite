@@ -1,3 +1,55 @@
+# Projet PRBD 2526 - ReserVite
+
+Application mobile de gestion de réservations de restaurants développée individuellement dans le cadre de mon Bachelier en Informatique de gestion à l'EPFC.
+
+## Présentation
+
+ReserVite est une application permettant de gérer les réservations d'un restaurant selon deux profils : client et manager.
+
+Le projet a été réalisé individuellement dans le cadre du cours de Projet de bases de données.
+
+Il m'a permis de travailler sur une application Flutter complète reliée à une base de données PostgreSQL, avec gestion de l'état via Riverpod.
+
+## Fonctionnalités principales
+
+### Côté client
+
+- Consultation et recherche de restaurants
+- Création et gestion de réservations
+- Modification et annulation de réservations
+- Consultation des détails d'une réservation
+
+### Côté manager
+
+- Gestion des restaurants
+- Consultation des réservations du restaurant
+- Modification et annulation des réservations
+- Attribution de tables aux réservations
+- Gestion de l'état des réservations
+
+## Technologies utilisées
+
+- Flutter
+- Dart
+- Riverpod
+- PostgreSQL
+- PL/pgSQL
+
+## Architecture
+
+L'application est séparée en deux parties :
+
+- un frontend développé avec Flutter et Dart ;
+- un backend basé sur PostgreSQL et PL/pgSQL.
+
+Le frontend utilise Riverpod pour la gestion de l'état de l'application.
+
+## État du projet
+
+Projet académique partiellement finalisé. Les principales fonctionnalités de réservation et de gestion ont été développées, mais certaines fonctionnalités prévues n'ont pas été implémentées.
+
+# Documentation originale du projet
+
 # Projet PRBD 2526 - Groupe a08 - ReserVite
 
 ## Notes de version
